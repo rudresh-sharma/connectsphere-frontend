@@ -1,0 +1,89 @@
+<section class="create-post-card" aria-labelledby="create-post-title">
+  <div class="create-header">
+    <div class="avatar" aria-hidden="true">CS</div>
+    <div>
+      <p class="eyebrow">Create</p>
+      <h2 id="create-post-title">Share something with ConnectSphere</h2>
+    </div>
+  </div>
+
+  <form [formGroup]="createForm" (ngSubmit)="submit()" novalidate>
+    <div class="mb-3">
+      <label for="postContent" class="form-label">Post content</label>
+      <div class="mention-input-wrap">
+        <textarea
+          #contentInput
+          id="postContent"
+          class="form-control"
+          rows="4"
+          formControlName="content"
+          placeholder="What is happening in your sphere? Use @username to mention someone."
+          [class.is-invalid]="content.invalid && content.touched"
+          (input)="onContentInput(contentInput)"
+          (click)="onContentInput(contentInput)"
+          (keyup)="onContentInput(contentInput)"
+          (blur)="hideMentionSuggestions()"
+        ></textarea>
+
+        <div *ngIf="showMentionSuggestions" class="mention-suggestions" role="listbox" aria-label="Mention suggestions">
+          <button
+            *ngFor="let user of mentionResults; trackBy: trackMention"
+            class="mention-suggestion"
+            type="button"
+            (mousedown)="insertMention(user, contentInput)"
+          >
+            <img *ngIf="user.profilePicUrl; else mentionAvatarFallback" [src]="user.profilePicUrl" [alt]="user.fullName">
+            <ng-template #mentionAvatarFallback>
+              <span class="mention-avatar-fallback" aria-hidden="true">{{ user.fullName.charAt(0) || user.username.charAt(0) }}</span>
+            </ng-template>
+            <span class="mention-user-copy">
+              <strong>{{ user.fullName }}</strong>
+              <span>@{{ user.username }}</span>
+            </span>
+          </button>
+        </div>
+      </div>
+      <div class="invalid-feedback">Write a post before publishing.</div>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <label for="mediaFile" class="form-label">Upload image or video</label>
+        <input
+          id="mediaFile"
+          type="file"
+          class="form-control"
+          accept="image/*,video/*"
+          (change)="onFileSelected($event)"
+        >
+        <div class="form-text" *ngIf="selectedFile && !fileError">
+          Selected: {{ selectedFile.name }}
+        </div>
+        <div class="text-danger small mt-1" *ngIf="fileError">{{ fileError }}</div>
+      </div>
+
+      <div class="col-sm-6 col-lg-3">
+        <label for="postType" class="form-label">Type</label>
+        <select id="postType" class="form-select" formControlName="postType">
+          <option *ngFor="let type of postTypes" [value]="type">{{ type }}</option>
+        </select>
+      </div>
+
+      <div class="col-sm-6 col-lg-3">
+        <label for="visibility" class="form-label">Visibility</label>
+        <select id="visibility" class="form-select" formControlName="visibility">
+          <option *ngFor="let visibility of visibilities" [value]="visibility">{{ visibility }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="create-actions">
+      <span>{{ content.value.length }}/1000</span>
+      <button class="btn btn-primary" type="submit" [disabled]="isSubmitting">
+        <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+        <i *ngIf="!isSubmitting" class="bi bi-plus-lg me-2" aria-hidden="true"></i>
+        Create
+      </button>
+    </div>
+  </form>
+</section>

@@ -1,0 +1,13 @@
+.notifications-page { max-width: 700px; margin: 0 auto; padding: 20px; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.page-header h2 { margin: 0; }
+.loading, .empty { text-align: center; padding: 40px; color: #888; }
+.notif-card { display: flex; align-items: center; gap: 12px; padding: 14px 16px; margin-bottom: 8px; background: #fff; border: 1px solid #eee; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+.notif-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.notif-card.unread { background: #e8f0fe; border-color: #c4d9f7; }
+.icon { font-size: 1.4rem; }
+.content { flex: 1; }
+.message { margin: 0; font-size: 0.9rem; }
+.timestamp { color: #999; font-size: 0.8rem; }
+.delete-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 1rem; padding: 4px; }
+.delete-btn:hover { color: #ea4335; }

@@ -1,0 +1,136 @@
+.follow-list-card {
+  padding: clamp(20px, 3vw, 28px);
+  border: 1px solid rgba(217, 225, 236, 0.9);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 16px 50px rgba(16, 24, 40, 0.08);
+}
+
+.follow-list-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: var(--cs-accent);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 900;
+}
+
+.loading-state,
+.empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 28px;
+  color: var(--cs-muted);
+  text-align: center;
+}
+
+.empty-state .bi {
+  color: var(--cs-primary);
+  font-size: 2rem;
+}
+
+.empty-state p {
+  margin: 0;
+  font-weight: 800;
+}
+
+.follow-list-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-color: #edf1f6;
+  color: inherit;
+  text-decoration: none;
+}
+
+.follow-list-item:hover,
+.follow-list-item:focus-visible {
+  border-color: #bad6ad;
+  background: #fbfdf8;
+}
+
+.follow-avatar {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.fallback-avatar {
+  display: inline-grid;
+  place-items: center;
+  background: #203026;
+  color: #fff;
+  font-weight: 900;
+}
+
+.follow-person {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.follow-person strong {
+  color: #111827;
+}
+
+.follow-person small,
+.follow-person em,
+.follow-list-item time {
+  color: var(--cs-muted);
+  font-size: 0.88rem;
+}
+
+.follow-person em {
+  overflow: hidden;
+  max-width: 52ch;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.follow-list-item time {
+  margin-left: auto;
+  font-weight: 800;
+}
+
+.label {
+  color: var(--cs-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+strong {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .follow-list-header,
+  .follow-list-item {
+    align-items: flex-start;
+  }
+
+  .follow-list-header {
+    display: grid;
+  }
+
+  .follow-list-item time {
+    display: none;
+  }
+}

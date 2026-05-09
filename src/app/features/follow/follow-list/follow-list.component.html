@@ -1,0 +1,50 @@
+<section class="follow-list-card" [attr.aria-labelledby]="mode + '-title'">
+  <div class="follow-list-header">
+    <button class="btn btn-light btn-sm" type="button" (click)="loadList()" [disabled]="isLoading">
+      <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+      <i *ngIf="!isLoading" class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>
+      Refresh
+    </button>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger" role="alert">{{ errorMessage }}</div>
+
+  <div *ngIf="isLoading" class="loading-state" role="status">
+    <span class="spinner-border text-primary" aria-hidden="true"></span>
+    <strong>Loading {{ heading | lowercase }}...</strong>
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage && relationships.length === 0" class="empty-state">
+    <i class="bi bi-people" aria-hidden="true"></i>
+    <p>No {{ heading | lowercase }} yet.</p>
+  </div>
+
+  <div *ngIf="!isLoading && relationships.length > 0" class="list-group">
+    <a
+      class="list-group-item follow-list-item"
+      *ngFor="let relationship of relationships"
+      [routerLink]="['/profile']"
+      [queryParams]="{ userId: getDisplayUserId(relationship) }"
+    >
+      <img
+        *ngIf="relationship.displayUser?.profilePicUrl; else fallbackAvatar"
+        class="follow-avatar"
+        [src]="relationship.displayUser?.profilePicUrl"
+        [alt]="relationship.displayUser?.fullName || relationship.displayUser?.username || 'User profile'"
+      >
+      <ng-template #fallbackAvatar>
+        <span class="follow-avatar fallback-avatar" aria-hidden="true">{{ getInitial(relationship) }}</span>
+      </ng-template>
+
+      <span class="follow-person">
+        <strong>{{ relationship.displayUser?.fullName || relationship.displayUser?.username || ('User #' + getDisplayUserId(relationship)) }}</strong>
+        <small *ngIf="relationship.displayUser?.username">@{{ relationship.displayUser?.username }}</small>
+        <em *ngIf="relationship.displayUser?.bio">{{ relationship.displayUser?.bio }}</em>
+      </span>
+
+      <time *ngIf="relationship.createdAt" [attr.datetime]="relationship.createdAt">
+        {{ relationship.createdAt | date: 'mediumDate' }}
+      </time>
+    </a>
+  </div>
+</section>

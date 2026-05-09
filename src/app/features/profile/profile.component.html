@@ -1,0 +1,481 @@
+<main class="dashboard-shell profile-page">
+  <section class="profile-header" aria-labelledby="profile-title">
+    <button
+      *ngIf="isOwnProfile"
+      class="profile-mobile-settings"
+      type="button"
+      aria-label="Open settings"
+      (click)="openSettings()"
+    >
+      <i class="bi bi-gear" aria-hidden="true"></i>
+    </button>
+
+    <div class="profile-mobile-overview">
+      <div class="profile-mobile-avatar-wrap">
+        <img
+          *ngIf="hasProfilePicture; else mobileProfileInitials"
+          class="profile-mobile-avatar"
+          [src]="user?.profilePicUrl"
+          [alt]="user?.fullName || user?.username || 'Profile picture'"
+          (error)="onProfileImageError()"
+        >
+        <ng-template #mobileProfileInitials>
+          <div class="profile-mobile-avatar initials-avatar" aria-hidden="true">{{ profileInitial }}</div>
+        </ng-template>
+      </div>
+
+      <div class="profile-mobile-meta">
+        <div class="profile-mobile-identity">@{{ user?.username || 'connectsphere' }}</div>
+
+        <div class="profile-mobile-stats" aria-label="Profile stats">
+          <button class="profile-stat" type="button">
+            <strong>{{ postCount }}</strong>
+            <span>posts</span>
+          </button>
+          <button class="profile-stat" type="button" (click)="selectFollowTab('followers')">
+            <strong>{{ isLoadingFollowCounts ? '...' : followCounts?.followersCount ?? 0 }}</strong>
+            <span>followers</span>
+          </button>
+          <button class="profile-stat" type="button" (click)="selectFollowTab('following')">
+            <strong>{{ isLoadingFollowCounts ? '...' : followCounts?.followingCount ?? 0 }}</strong>
+            <span>following</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-mobile-bio">
+      <h2>{{ user?.fullName || user?.username || 'ConnectSphere user' }}</h2>
+      <p *ngIf="user?.bio; else mobileEmptyBio">{{ user?.bio }}</p>
+      <ng-template #mobileEmptyBio>
+        <p class="bio-muted">{{ isOwnProfile ? 'Add a bio to tell people about yourself.' : 'No bio added yet.' }}</p>
+      </ng-template>
+    </div>
+
+    <div class="profile-mobile-actions" *ngIf="isOwnProfile; else mobilePublicProfileActions">
+      <label class="btn btn-light profile-action-btn" for="profilePicture">
+        <span *ngIf="isUploadingPicture" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+        <i *ngIf="!isUploadingPicture" class="bi bi-camera me-2" aria-hidden="true"></i>
+        {{ isUploadingPicture ? 'Uploading...' : 'Change photo' }}
+      </label>
+      <button class="btn btn-light profile-action-btn" type="button" (click)="toggleEditProfile()">
+        <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>
+        {{ isEditingProfile ? 'Close editor' : 'Edit profile' }}
+      </button>
+    </div>
+
+    <ng-template #mobilePublicProfileActions>
+      <div class="profile-mobile-actions">
+        <app-follow-button
+          *ngIf="isViewingAnotherUser"
+          [currentUserId]="currentUserId"
+          [targetUserId]="profileUserId"
+          (followChanged)="onFollowChanged($event)"
+        ></app-follow-button>
+      </div>
+    </ng-template>
+
+    <div class="profile-header-avatar">
+      <img
+        *ngIf="hasProfilePicture; else profileInitials"
+        class="profile-avatar"
+        [src]="user?.profilePicUrl"
+        [alt]="user?.fullName || user?.username || 'Profile picture'"
+        (error)="onProfileImageError()"
+      >
+      <ng-template #profileInitials>
+        <div class="profile-avatar initials-avatar" aria-hidden="true">{{ profileInitial }}</div>
+      </ng-template>
+    </div>
+
+    <div class="profile-header-main">
+      <div class="profile-identity-row">
+        <h1 id="profile-title">@{{ user?.username || 'connectsphere' }}</h1>
+
+        <div class="profile-actions-inline" *ngIf="isOwnProfile; else publicProfileActions">
+          <label class="btn btn-light profile-action-btn" for="profilePicture">
+            <span *ngIf="isUploadingPicture" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+            <i *ngIf="!isUploadingPicture" class="bi bi-camera me-2" aria-hidden="true"></i>
+            {{ isUploadingPicture ? 'Uploading...' : 'Change photo' }}
+          </label>
+          <button class="btn btn-light profile-action-btn" type="button" (click)="toggleEditProfile()">
+            <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>
+            {{ isEditingProfile ? 'Close editor' : 'Edit profile' }}
+          </button>
+        </div>
+
+        <ng-template #publicProfileActions>
+          <app-follow-button
+            *ngIf="isViewingAnotherUser"
+            [currentUserId]="currentUserId"
+            [targetUserId]="profileUserId"
+            (followChanged)="onFollowChanged($event)"
+          ></app-follow-button>
+        </ng-template>
+      </div>
+
+      <div class="profile-stats-row" aria-label="Profile stats">
+        <button class="profile-stat" type="button">
+          <strong>{{ postCount }}</strong>
+          <span>posts</span>
+        </button>
+        <button class="profile-stat" type="button" (click)="selectFollowTab('followers')">
+          <strong>{{ isLoadingFollowCounts ? '...' : followCounts?.followersCount ?? 0 }}</strong>
+          <span>followers</span>
+        </button>
+        <button class="profile-stat" type="button" (click)="selectFollowTab('following')">
+          <strong>{{ isLoadingFollowCounts ? '...' : followCounts?.followingCount ?? 0 }}</strong>
+          <span>following</span>
+        </button>
+      </div>
+
+      <div class="profile-bio-block">
+        <h2>{{ user?.fullName || user?.username || 'ConnectSphere user' }}</h2>
+        <p *ngIf="user?.bio; else emptyBio">{{ user?.bio }}</p>
+        <ng-template #emptyBio>
+          <p class="bio-muted">{{ isOwnProfile ? 'Add a bio to tell people about yourself.' : 'No bio added yet.' }}</p>
+        </ng-template>
+      </div>
+
+      <input
+        *ngIf="isOwnProfile"
+        id="profilePicture"
+        class="visually-hidden"
+        type="file"
+        accept="image/*"
+        (change)="uploadProfilePicture($event)"
+        [disabled]="isUploadingPicture"
+      >
+    </div>
+  </section>
+
+  <section class="profile-tabs" aria-label="Profile navigation">
+    <button class="profile-tab" [class.active]="selectedProfileTab === 'posts'" type="button" (click)="selectProfileTab('posts')">
+      <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+      <span>Posts</span>
+    </button>
+    <button class="profile-tab" [class.active]="selectedProfileTab === 'saved'" type="button" (click)="selectProfileTab('saved')">
+      <i class="bi bi-bookmark" aria-hidden="true"></i>
+      <span>Saved</span>
+    </button>
+    <button class="profile-tab" [class.active]="selectedProfileTab === 'details'" *ngIf="isOwnProfile" type="button" (click)="selectProfileTab('details')">
+      <i class="bi bi-person-badge" aria-hidden="true"></i>
+      <span>Details</span>
+    </button>
+  </section>
+
+  <section class="profile-content">
+    <div class="profile-posts">
+      <div *ngIf="selectedProfileTab === 'details'" class="profile-empty-state">
+        <i class="bi bi-person-badge" aria-hidden="true"></i>
+        <h3>Profile details</h3>
+        <p>{{ user?.email || 'No additional details to show.' }}</p>
+      </div>
+
+      <div *ngIf="selectedProfileTab !== 'details' && visiblePosts.length === 0" class="profile-empty-state">
+        <i class="bi" [ngClass]="selectedProfileTab === 'saved' ? 'bi-bookmark' : 'bi-camera'" aria-hidden="true"></i>
+        <h3>{{ selectedProfileTab === 'saved' ? 'No saved posts yet' : 'No posts yet' }}</h3>
+        <p>
+          {{
+            selectedProfileTab === 'saved'
+              ? 'Bookmarked posts will appear here.'
+              : isOwnProfile
+                ? 'Share your first post to start building your profile.'
+                : 'This profile has not shared any posts yet.'
+          }}
+        </p>
+      </div>
+
+      <div *ngIf="selectedProfileTab !== 'details' && visiblePosts.length > 0" class="profile-post-grid">
+        <article
+          *ngFor="let post of visiblePosts; let postIndex = index"
+          class="profile-post-tile"
+          tabindex="0"
+          role="button"
+          aria-label="Open post"
+          (click)="openPostViewer(postIndex)"
+          (keydown.enter)="openPostViewer(postIndex)"
+          (keydown.space)="openPostViewer(postIndex); $event.preventDefault()"
+        >
+          <ng-container *ngIf="getPrimaryMedia(post) as media; else textOnlyPost">
+            <video *ngIf="isVideoPost(post); else imageTile" [src]="media" playsinline preload="metadata"></video>
+            <ng-template #imageTile>
+              <img [src]="media" [alt]="post.content || 'Profile post media'">
+            </ng-template>
+          </ng-container>
+
+          <ng-template #textOnlyPost>
+            <div class="profile-post-text">
+              <p [ngStyle]="getTextPostTileStyle(post)">
+                <ng-container *ngIf="getTextPostMention(post) as mention">
+                  <span style="color:#0a66d8">{{ mention }}</span>
+                  <span> {{ getTextPostBody(post) }}</span>
+                </ng-container>
+                <ng-container *ngIf="!getTextPostMention(post)">
+                  {{ post.content || 'Text post' }}
+                </ng-container>
+              </p>
+            </div>
+          </ng-template>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <div
+    *ngIf="selectedPost as activePost"
+    class="profile-post-viewer-backdrop"
+    role="presentation"
+    (click)="closePostViewer()"
+  >
+    <section
+      class="profile-post-viewer"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Profile post"
+      (click)="$event.stopPropagation()"
+      (wheel)="onPostViewerWheel($event)"
+    >
+      <button class="profile-post-viewer-close" type="button" (click)="closePostViewer()" aria-label="Close post">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+
+      <button
+        class="profile-post-viewer-nav profile-post-viewer-prev"
+        type="button"
+        (click)="showPreviousPost()"
+        [disabled]="selectedPostIndex === 0"
+        aria-label="Previous post"
+      >
+        <i class="bi bi-chevron-left" aria-hidden="true"></i>
+      </button>
+
+      <div class="profile-post-viewer-card">
+        <app-post-card
+          [post]="activePost"
+          [currentUserId]="currentUserId"
+          [currentUser]="currentUser"
+          (updated)="updateViewedPost($event)"
+          (deleted)="deleteViewedPost($event)"
+        ></app-post-card>
+      </div>
+
+      <button
+        class="profile-post-viewer-nav profile-post-viewer-next"
+        type="button"
+        (click)="showNextPost()"
+        [disabled]="selectedPostIndex === visiblePosts.length - 1"
+        aria-label="Next post"
+      >
+        <i class="bi bi-chevron-right" aria-hidden="true"></i>
+      </button>
+    </section>
+  </div>
+
+  <div
+    *ngIf="isEditingProfile"
+    class="profile-edit-modal-backdrop"
+    role="presentation"
+    (click)="toggleEditProfile()"
+  >
+    <section
+      class="profile-edit-modal profile-card"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Edit profile"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Profile</p>
+          <h2>Public details</h2>
+        </div>
+        <div class="profile-edit-modal-actions">
+          <span class="status-pill" [class.status-pill-active]="user?.active">
+            {{ user?.active ? 'Active' : 'Inactive' }}
+          </span>
+          <button class="settings-modal-close" type="button" (click)="toggleEditProfile()" aria-label="Close edit profile">
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+
+      <form [formGroup]="profileForm" (ngSubmit)="saveProfileDetails()" class="profile-edit-form profile-edit-form-compact" novalidate>
+        <div class="mb-3">
+          <label class="form-label" for="profile-fullName">Name</label>
+          <div class="editable-profile-field">
+            <input
+              id="profile-fullName"
+              class="form-control"
+              type="text"
+              formControlName="fullName"
+              autocomplete="name"
+              maxlength="120"
+              [class.is-invalid]="profileForm.controls.fullName.invalid && profileForm.controls.fullName.touched"
+            >
+          </div>
+          <div *ngIf="profileForm.controls.fullName.invalid && profileForm.controls.fullName.touched" class="invalid-feedback d-block">
+            Enter a name up to 120 characters.
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="profile-username">Username</label>
+          <div class="input-group editable-username-field">
+            <span class="input-group-text">@</span>
+            <input
+              id="profile-username"
+              class="form-control"
+              type="text"
+              formControlName="username"
+              autocomplete="username"
+              [class.is-invalid]="profileForm.controls.username.invalid && profileForm.controls.username.touched"
+            >
+          </div>
+          <div *ngIf="profileForm.controls.username.invalid && profileForm.controls.username.touched" class="invalid-feedback d-block">
+            Enter a valid username using 3-40 letters, numbers, dots, underscores, or hyphens.
+          </div>
+          <div *ngIf="isCheckingUsername" class="checking-text">
+            <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+            Checking availability...
+          </div>
+          <div
+            *ngIf="profileForm.controls.username.valid && profileForm.controls.username.touched && usernameAvailable === true"
+            class="valid-feedback d-block"
+          >
+            Username is available.
+          </div>
+          <div
+            *ngIf="profileForm.controls.username.valid && profileForm.controls.username.touched && usernameAvailable === false"
+            class="invalid-feedback d-block"
+          >
+            Username is already taken.
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="profile-bio">Bio</label>
+          <div class="editable-profile-field editable-profile-field-textarea">
+            <textarea
+              id="profile-bio"
+              class="form-control"
+              rows="4"
+              formControlName="bio"
+              maxlength="300"
+              [class.is-invalid]="profileForm.controls.bio.invalid && profileForm.controls.bio.touched"
+            ></textarea>
+          </div>
+          <div class="form-text">Optional, up to 300 characters.</div>
+        </div>
+
+        <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+          {{ errorMessage }}
+        </div>
+
+        <div *ngIf="successMessage" class="alert alert-success" role="status">
+          {{ successMessage }}
+        </div>
+
+        <div class="action-row">
+          <button class="btn btn-primary" type="submit" [disabled]="isSavingProfile || isCheckingUsername || usernameAvailable !== true">
+            <span *ngIf="isSavingProfile" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+            {{ isSavingProfile ? 'Saving...' : 'Save profile' }}
+          </button>
+          <button class="btn btn-outline-secondary" type="button" (click)="toggleEditProfile()">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div
+    *ngIf="showConnections"
+    class="connections-modal-backdrop"
+    role="presentation"
+    (click)="closeConnections()"
+  >
+    <section
+      class="connections-modal"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="selectedFollowTab === 'followers' ? 'Followers' : 'Following'"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="connections-modal-header">
+        <div class="connections-modal-title">
+          {{ selectedFollowTab === 'followers' ? 'Followers' : 'Following' }}
+        </div>
+
+        <button class="connections-modal-close" type="button" (click)="closeConnections()" aria-label="Close connections">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="connections-modal-body">
+        <app-follow-list [userId]="profileUserId" [mode]="selectedFollowTab"></app-follow-list>
+      </div>
+    </section>
+  </div>
+
+  <div
+    *ngIf="showSettings"
+    class="settings-modal-backdrop"
+    role="presentation"
+    (click)="closeSettings()"
+  >
+    <section
+      class="settings-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Settings"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="settings-modal-header">
+        <div>
+          <p class="eyebrow">Settings</p>
+          <h2>Account actions</h2>
+          <p class="settings-modal-subtitle">Manage your profile, session, and account from one place.</p>
+        </div>
+
+        <button class="settings-modal-close" type="button" (click)="closeSettings()" aria-label="Close settings">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="settings-action-grid">
+        <button class="settings-action-card settings-action-card-primary" type="button" (click)="refreshProfile()" [disabled]="isRefreshing">
+          <span class="settings-action-icon" aria-hidden="true">
+            <i class="bi" [ngClass]="isRefreshing ? 'bi-arrow-repeat' : 'bi-person-check'"></i>
+          </span>
+          <span class="settings-action-copy">
+            <strong>{{ isRefreshing ? 'Syncing profile' : 'Sync profile' }}</strong>
+            <span>Refresh your latest account details.</span>
+          </span>
+          <span *ngIf="isRefreshing" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        </button>
+
+        <button class="settings-action-card" type="button" (click)="logout()">
+          <span class="settings-action-icon" aria-hidden="true">
+            <i class="bi bi-box-arrow-right"></i>
+          </span>
+          <span class="settings-action-copy">
+            <strong>Logout</strong>
+            <span>Sign out of your current session safely.</span>
+          </span>
+        </button>
+
+        <button class="settings-action-card settings-action-card-danger" type="button" (click)="deleteAccount()" [disabled]="isDeletingAccount">
+          <span class="settings-action-icon" aria-hidden="true">
+            <i class="bi" [ngClass]="isDeletingAccount ? 'bi-hourglass-split' : 'bi-trash3'"></i>
+          </span>
+          <span class="settings-action-copy">
+            <strong>{{ isDeletingAccount ? 'Deleting account' : 'Delete account' }}</strong>
+            <span>Permanently remove your profile and sign out.</span>
+          </span>
+          <span *ngIf="isDeletingAccount" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        </button>
+      </div>
+    </section>
+  </div>
+</main>

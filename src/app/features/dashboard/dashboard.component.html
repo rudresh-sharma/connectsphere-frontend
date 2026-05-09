@@ -1,0 +1,93 @@
+<main class="dashboard-shell">
+  <header class="topbar">
+    <div class="brand-mark dashboard-brand" aria-label="ConnectSphere">
+      <span class="brand-icon">
+        <img src="assets/images/logoimg.webp" alt="ConnectSphere logo">
+      </span>
+      <span class="dashboard-brand-text">ConnectSphere</span>
+    </div>
+
+  </header>
+
+  <section class="profile-hero" aria-labelledby="dashboard-title">
+    <div class="profile-avatar" aria-hidden="true">
+      {{ user?.fullName?.charAt(0) || user?.username?.charAt(0) || 'C' }}
+    </div>
+
+    <div>
+      <p class="eyebrow">Dashboard</p>
+      <h1 id="dashboard-title">Welcome, {{ user?.fullName || 'ConnectSphere user' }}</h1>
+      <p class="profile-subtitle">
+        Your OAuth session is active. This dashboard is protected by the Angular auth guard.
+      </p>
+    </div>
+  </section>
+
+  <section class="dashboard-grid" aria-label="Dashboard details">
+    <article class="profile-card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Profile</p>
+          <h2>Account details</h2>
+        </div>
+        <span class="status-pill" [class.status-pill-active]="user?.active">
+          {{ user?.active ? 'Active' : 'Inactive' }}
+        </span>
+      </div>
+
+      <dl class="detail-list">
+        <div>
+          <dt>Full name</dt>
+          <dd>{{ user?.fullName || 'Not available' }}</dd>
+        </div>
+        <div>
+          <dt>Username</dt>
+          <dd>@{{ user?.username || 'unknown' }}</dd>
+        </div>
+        <div>
+          <dt>Email</dt>
+          <dd>{{ user?.email || 'Not available' }}</dd>
+        </div>
+        <div>
+          <dt>Provider</dt>
+          <dd>{{ user?.provider || 'Not available' }}</dd>
+        </div>
+        <div>
+          <dt>Role</dt>
+          <dd>{{ user?.role || 'Not available' }}</dd>
+        </div>
+      </dl>
+    </article>
+
+    <article class="profile-card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Security</p>
+          <h2>Token status</h2>
+        </div>
+        <i class="bi bi-shield-check shield-icon" aria-hidden="true"></i>
+      </div>
+
+      <div class="token-panel">
+        <span>{{ tokenStatus }}</span>
+        <code>{{ tokenPreview }}</code>
+      </div>
+
+      <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+        {{ errorMessage }}
+      </div>
+
+      <div *ngIf="successMessage" class="alert alert-success" role="status">
+        {{ successMessage }}
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-primary" type="button" (click)="refreshProfile()" [disabled]="isRefreshing">
+          <span *ngIf="isRefreshing" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+          <i *ngIf="!isRefreshing" class="bi bi-arrow-clockwise me-2" aria-hidden="true"></i>
+          {{ isRefreshing ? 'Syncing...' : 'Refresh profile' }}
+        </button>
+      </div>
+    </article>
+  </section>
+</main>

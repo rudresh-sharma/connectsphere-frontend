@@ -1,0 +1,125 @@
+<main class="landing-shell">
+  <section class="landing-hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Social Platform</p>
+      <div class="headline-stack">
+        <span>Post.</span>
+        <span>React.</span>
+        <span>Belong.</span>
+      </div>
+      <h1>Where your people, stories, and moments actually feel alive.</h1>
+      <p class="hero-text">
+        A cleaner social space for live feed moments, short-form reels, instant notifications, and real community energy.
+      </p>
+
+      <div class="hero-actions">
+        <a class="btn-primary-hero" [routerLink]="primaryRoute">{{ primaryLabel }}</a>
+        <a class="btn-secondary-hero" routerLink="/login">{{ isAuthenticated ? 'Switch account' : 'Log in' }}</a>
+        <a class="btn-ghost-hero" routerLink="/search">Explore</a>
+      </div>
+
+      <div class="hero-strip" aria-label="Platform highlights">
+        <span class="strip-pill">Live feed</span>
+        <span class="strip-pill">Stories</span>
+        <span class="strip-pill">Reels</span>
+        <span class="strip-pill">Hashtags</span>
+        <span class="strip-pill">Notifications</span>
+      </div>
+
+      <div class="hero-highlights" aria-label="Why people use ConnectSphere">
+        <div class="highlight-card">
+          <strong>Share instantly</strong>
+          <span>Turn moments into posts, stories, and reels.</span>
+        </div>
+        <div class="highlight-card">
+          <strong>Find your people</strong>
+          <span>Follow creators, friends, and communities that match your vibe.</span>
+        </div>
+        <div class="highlight-card">
+          <strong>Stay in the loop</strong>
+          <span>Reactions, mentions, and notifications keep every conversation moving.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-visual" aria-hidden="true">
+      <div class="orb orb-one"></div>
+      <div class="orb orb-two"></div>
+
+      <div class="visual-card visual-card-main">
+        <span class="visual-badge">Now Trending</span>
+        <div class="trend-line">
+          <span>#launchday</span>
+          <span>12.8k posts</span>
+        </div>
+        <div class="visual-feed">
+          <div class="feed-post feed-post-large">
+            <div class="feed-avatar"></div>
+            <div class="feed-body">
+              <div class="feed-bar feed-bar-wide"></div>
+              <div class="feed-bar"></div>
+              <div class="feed-tags">
+                <span>Media</span>
+                <span>Mentions</span>
+                <span>Reactions</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="feed-row">
+            <div class="feed-stat">
+              <strong>2.4k</strong>
+              <span>active follows</span>
+            </div>
+            <div class="feed-stat">
+              <strong>98%</strong>
+              <span>story views</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="floating-panel floating-left">
+        <span class="floating-label">Story Ring</span>
+        <div class="story-row">
+          <span class="story-dot"></span>
+          <span class="story-dot"></span>
+          <span class="story-dot"></span>
+          <span class="story-dot"></span>
+        </div>
+      </div>
+
+      <div class="floating-panel floating-right">
+        <span class="floating-label">Realtime</span>
+        <div class="notify-chip">3 new notifications</div>
+        <div class="notify-chip soft">12 mentions this hour</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-grid" aria-label="Platform highlights">
+    <article class="feature-card">
+      <div class="feature-icon" aria-hidden="true">
+        <i class="bi bi-person-check-fill"></i>
+      </div>
+      <h3>Identity</h3>
+      <p>Secure sign-in, profile setup, and smoother onboarding.</p>
+    </article>
+
+    <article class="feature-card">
+      <div class="feature-icon" aria-hidden="true">
+        <i class="bi bi-chat-heart-fill"></i>
+      </div>
+      <h3>Engagement</h3>
+      <p>Posts, replies, reactions, and fast-moving social energy.</p>
+    </article>
+
+    <article class="feature-card">
+      <div class="feature-icon" aria-hidden="true">
+        <i class="bi bi-compass-fill"></i>
+      </div>
+      <h3>Discovery</h3>
+      <p>Stories, reels, search, and trends that keep people exploring.</p>
+    </article>
+  </section>
+</main>

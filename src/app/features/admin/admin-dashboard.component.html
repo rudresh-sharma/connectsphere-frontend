@@ -1,0 +1,312 @@
+<main class="admin-shell">
+  <section class="admin-hero">
+    <div>
+      <p class="eyebrow">Admin Control</p>
+      <h1>Platform administration</h1>
+      <p>Manage users, moderate content, review reports, and send platform-wide notifications.</p>
+    </div>
+    <button class="btn btn-outline-primary" type="button" (click)="loadAdminData()">Refresh</button>
+  </section>
+
+  <div *ngIf="errorMessage" class="alert alert-danger" role="alert">{{ errorMessage }}</div>
+  <div *ngIf="isLoading" class="admin-loading">Loading admin data...</div>
+
+  <section class="admin-grid" *ngIf="!isLoading">
+    <article class="admin-card analytics-card" *ngIf="adminView === 'overview'">
+      <h2>Analytics</h2>
+      <div class="analytics-metrics" *ngIf="analytics">
+        <div><strong>{{ analytics.totalUsers }}</strong><span>Total users</span></div>
+        <div><strong>{{ analytics.activeUsers }}</strong><span>Active users</span></div>
+        <div><strong>{{ analytics.dailyActiveUsers }}</strong><span>Daily active users</span></div>
+        <div><strong>{{ analytics.totalPosts }}</strong><span>Total posts</span></div>
+      </div>
+    </article>
+
+    <article class="admin-card full-span" *ngIf="adminView === 'notifications'">
+      <h2>Broadcast notifications</h2>
+      <form class="broadcast-form" (ngSubmit)="sendBroadcast()" novalidate>
+        <label class="form-label" for="broadcastMessage">Message</label>
+        <textarea
+          id="broadcastMessage"
+          name="broadcastMessage"
+          class="form-control"
+          rows="4"
+          [(ngModel)]="broadcastMessage"
+          [disabled]="isSendingBroadcast"
+          placeholder="Write the notification message..."
+        ></textarea>
+
+        <label class="form-label mt-3" for="broadcastRecipients">Target users</label>
+        <div class="recipient-picker">
+          <input
+            id="broadcastRecipients"
+            name="broadcastRecipients"
+            class="form-control"
+            [(ngModel)]="broadcastRecipients"
+            [disabled]="isSendingBroadcast"
+            (focus)="showRecipientSuggestions = true"
+            (input)="showRecipientSuggestions = true"
+            (blur)="hideRecipientSuggestionsSoon()"
+            placeholder="Leave empty for all users, or enter @usernames"
+            autocomplete="off"
+          >
+          <div class="recipient-suggestions" *ngIf="showRecipientSuggestions && suggestedBroadcastUsers.length > 0">
+            <button
+              *ngFor="let user of suggestedBroadcastUsers"
+              class="recipient-suggestion"
+              type="button"
+              (mousedown)="selectBroadcastRecipient(user, $event)"
+            >
+              <img
+                *ngIf="user.profilePicUrl; else suggestionInitial"
+                class="suggestion-avatar"
+                [src]="user.profilePicUrl"
+                [alt]="user.fullName || user.username"
+              >
+              <ng-template #suggestionInitial>
+                <span class="suggestion-avatar" aria-hidden="true">{{ getUserInitial(user) }}</span>
+              </ng-template>
+              <span>
+                <strong>{{ user.fullName || user.username }}</strong>
+                <small>@{{ user.username }}</small>
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="broadcastSuccessMessage" class="alert alert-success mt-3" role="status">
+          {{ broadcastSuccessMessage }}
+        </div>
+
+        <button class="btn btn-primary mt-3" type="submit" [disabled]="isSendingBroadcast">
+          <span *ngIf="isSendingBroadcast" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+          {{ isSendingBroadcast ? 'Sending...' : 'Send broadcast' }}
+        </button>
+      </form>
+    </article>
+
+    <article #adminDataCard class="admin-card full-span admin-management-card" *ngIf="adminView === 'data'">
+      <div class="admin-section-heading">
+        <h2>Manage platform data</h2>
+      </div>
+
+      <nav class="admin-tabs" aria-label="Admin management sections">
+        <button type="button" class="admin-tab" [class.active]="activeAdminTab === 'users'" (click)="selectAdminTab('users')">
+          Users <span>{{ users.length }}</span>
+        </button>
+        <button type="button" class="admin-tab" [class.active]="activeAdminTab === 'posts'" (click)="selectAdminTab('posts')">
+          Posts <span>{{ posts.length + pendingPromotions.length }}</span>
+        </button>
+        <button type="button" class="admin-tab" [class.active]="activeAdminTab === 'comments'" (click)="selectAdminTab('comments')">
+          Comments <span>{{ comments.length }}</span>
+        </button>
+        <button type="button" class="admin-tab" [class.active]="activeAdminTab === 'reports'" (click)="selectAdminTab('reports')">
+          Reports <span>{{ postReports.length + commentReports.length }}</span>
+        </button>
+        <button type="button" class="admin-tab" [class.active]="activeAdminTab === 'hashtags'" (click)="selectAdminTab('hashtags')">
+          Hashtags <span>{{ trendingHashtags.length }}</span>
+        </button>
+      </nav>
+
+      <section *ngIf="activeAdminTab === 'users'" class="admin-tab-panel">
+        <div class="admin-list">
+          <div class="admin-row" *ngFor="let user of users">
+            <div>
+              <strong>@{{ user.username }}</strong>
+              <span>{{ user.role }} - {{ user.active ? 'Active' : 'Suspended' }}</span>
+            </div>
+            <div class="row-actions" *ngIf="canManageUser(user); else protectedAdmin">
+              <button class="btn btn-sm btn-outline-warning" type="button" (click)="suspendUser(user)" *ngIf="user.active">Suspend</button>
+              <button class="btn btn-sm btn-outline-success" type="button" (click)="reactivateUser(user)" *ngIf="!user.active">Reactivate</button>
+              <button class="btn btn-sm btn-outline-danger" type="button" (click)="deleteUser(user)">Delete</button>
+            </div>
+            <ng-template #protectedAdmin>
+              <span class="protected-user">Protected</span>
+            </ng-template>
+          </div>
+        </div>
+      </section>
+
+      <section *ngIf="activeAdminTab === 'posts'" class="admin-tab-panel">
+        <div class="admin-subsection promotion-review-section" *ngIf="pendingPromotions.length > 0">
+          <h3>Promotion approvals</h3>
+          <div class="admin-list">
+            <div class="admin-post-panel promotion-row" *ngFor="let post of pendingPromotions">
+              <app-post-card
+                class="admin-post-surface"
+                [post]="post"
+                [currentUserId]="currentUserId"
+                [currentUser]="currentUser"
+              ></app-post-card>
+              <div class="admin-post-panel-footer">
+                <small class="promotion-status">Paid promotion pending admin approval</small>
+                <div class="row-actions admin-post-actions">
+                  <button class="btn btn-sm btn-outline-primary" type="button" (click)="openPostComments(post)">Comment</button>
+                  <button class="btn btn-sm btn-outline-success" type="button" (click)="approvePromotion(post)">Approve promote</button>
+                  <button class="btn btn-sm btn-outline-danger" type="button" (click)="rejectPromotion(post)">Reject</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-subsection" *ngIf="flaggedPosts.length > 0">
+          <h3>Flagged posts</h3>
+          <div class="admin-list">
+            <div class="admin-post-panel" *ngFor="let post of flaggedPosts">
+              <app-post-card
+                class="admin-post-surface"
+                [post]="post"
+                [currentUserId]="currentUserId"
+                [currentUser]="currentUser"
+              ></app-post-card>
+              <div class="admin-post-panel-footer">
+                <small class="admin-post-meta-label">Flagged content</small>
+                <div class="row-actions admin-post-actions">
+                  <button class="btn btn-sm btn-outline-primary" type="button" (click)="openPostComments(post)">Comment</button>
+                  <button class="btn btn-sm btn-outline-primary" type="button" (click)="approvePost(post)">Approve</button>
+                  <button class="btn btn-sm btn-outline-danger" type="button" (click)="flagRemovePost(post)">Remove</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-subsection">
+          <h3>All posts</h3>
+          <div class="admin-list">
+            <div class="admin-post-panel" *ngFor="let post of posts | slice:0:20">
+              <app-post-card
+                class="admin-post-surface"
+                [post]="post"
+                [currentUserId]="currentUserId"
+                [currentUser]="currentUser"
+              ></app-post-card>
+              <div class="admin-post-panel-footer">
+                <small class="admin-post-meta-label">{{ post.visibility }} post</small>
+                <small
+                  *ngIf="post.promotionStatus && post.promotionStatus !== 'NONE'"
+                  class="promotion-status"
+                  [class.promotion-active]="post.promotionStatus === 'ACTIVE'"
+                >
+                  Promotion: {{ post.promotionStatus }}<ng-container *ngIf="post.promotedUntil"> until {{ post.promotedUntil | date:'mediumDate' }}</ng-container>
+                </small>
+                <div class="row-actions admin-post-actions">
+                  <button class="btn btn-sm btn-outline-primary" type="button" (click)="openPostComments(post)">Comment</button>
+                  <button
+                    *ngIf="isPromotionPendingReview(post)"
+                    class="btn btn-sm btn-outline-success"
+                    type="button"
+                    (click)="approvePromotion(post)"
+                  >
+                    Approve promote
+                  </button>
+                  <button
+                    *ngIf="isPromotionPendingReview(post)"
+                    class="btn btn-sm btn-outline-danger"
+                    type="button"
+                    (click)="rejectPromotion(post)"
+                  >
+                    Reject promote
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary" type="button" (click)="editPost(post)">Edit</button>
+                  <button class="btn btn-sm btn-outline-danger" type="button" (click)="removePost(post)">Remove</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section *ngIf="activeAdminTab === 'comments'" class="admin-tab-panel">
+        <div class="admin-list">
+          <div class="admin-row" *ngFor="let comment of comments | slice:0:20">
+            <div>
+              <strong>@{{ comment.authorUsername }}</strong>
+              <span>{{ comment.content }}</span>
+            </div>
+            <div class="row-actions">
+              <button class="btn btn-sm btn-outline-secondary" type="button" (click)="editComment(comment)">Edit</button>
+              <button class="btn btn-sm btn-outline-danger" type="button" (click)="removeComment(comment)">Remove</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section *ngIf="activeAdminTab === 'reports'" class="admin-tab-panel reports-grid">
+        <div class="admin-subsection">
+          <h3>Post reports</h3>
+          <div class="admin-list">
+            <div class="admin-row" *ngFor="let report of postReports">
+              <div>
+                <strong>Post #{{ report.postId }}</strong>
+                <span>{{ report.reason }}</span>
+              </div>
+              <div class="row-actions">
+                <button class="btn btn-sm btn-outline-primary" type="button" (click)="resolvePostReport(report, false)">Resolve</button>
+                <button class="btn btn-sm btn-outline-danger" type="button" (click)="resolvePostReport(report, true)">Remove post</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-subsection">
+          <h3>Comment reports</h3>
+          <div class="admin-list">
+            <div class="admin-row" *ngFor="let report of commentReports">
+              <div>
+                <strong>Comment #{{ report.commentId }}</strong>
+                <span>{{ report.reason }}</span>
+              </div>
+              <div class="row-actions">
+                <button class="btn btn-sm btn-outline-primary" type="button" (click)="resolveCommentReport(report, false)">Resolve</button>
+                <button class="btn btn-sm btn-outline-danger" type="button" (click)="resolveCommentReport(report, true)">Remove comment</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section *ngIf="activeAdminTab === 'hashtags'" class="admin-tab-panel">
+        <div class="tag-grid">
+          <div class="tag-chip" *ngFor="let hashtag of trendingHashtags">
+            <strong>#{{ hashtag.tag }}</strong>
+            <span>{{ hashtag.postCount }} posts</span>
+          </div>
+        </div>
+      </section>
+    </article>
+  </section>
+
+  <div
+    *ngIf="selectedCommentPost as post"
+    class="admin-comments-backdrop"
+    role="presentation"
+    (click)="closePostComments()"
+  >
+    <section
+      class="admin-comments-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Post comments"
+      (click)="$event.stopPropagation()"
+    >
+      <button class="admin-comments-close" type="button" (click)="closePostComments()" aria-label="Close comments">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+
+      <div class="admin-comments-post">
+        <strong>@{{ post.authorUsername }}</strong>
+        <span>{{ post.content }}</span>
+      </div>
+
+      <app-comment-section
+        [postId]="getPostId(post)"
+        [postAuthorId]="post.authorId"
+        [currentUserId]="currentUserId"
+        [currentUserName]="currentUser?.fullName || currentUser?.username || 'Admin'"
+        (commentCountChange)="onAdminCommentCountChange($event)"
+      ></app-comment-section>
+    </section>
+  </div>
+</main>

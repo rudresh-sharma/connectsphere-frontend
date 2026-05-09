@@ -1,0 +1,191 @@
+<main class="auth-shell register-shell">
+  <section class="brand-panel" aria-label="ConnectSphere overview">
+    <nav class="brand-mark" aria-label="ConnectSphere">
+      <span class="brand-icon" aria-hidden="true">CS</span>
+      <span>ConnectSphere</span>
+    </nav>
+
+    <div class="brand-copy">
+      <p class="eyebrow">Start your sphere</p>
+      <h1>Create a profile that feels like home base.</h1>
+      <p>
+        Build your identity, follow friends, and keep every connection within reach.
+      </p>
+    </div>
+
+    <div class="activity-strip" aria-hidden="true">
+      <div class="mini-card">
+        <span class="avatar avatar-three"></span>
+        <div>
+          <strong>Creator-ready profile</strong>
+          <small>Name, bio, avatar, and more</small>
+        </div>
+      </div>
+      <div class="mini-card">
+        <span class="avatar avatar-four"></span>
+        <div>
+          <strong>Protected sessions</strong>
+          <small>JWT-backed authentication</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="form-panel" aria-labelledby="register-title">
+    <nav class="auth-mode-switch" aria-label="Authentication pages">
+      <a class="auth-mode-link" routerLink="/login">Login</a>
+      <a class="auth-mode-link active" routerLink="/register" aria-current="page">Register</a>
+    </nav>
+
+    <div class="auth-card">
+      <div class="mobile-brand">
+        <span class="brand-icon" aria-hidden="true">CS</span>
+        <span>ConnectSphere</span>
+      </div>
+
+      <p class="eyebrow">Join ConnectSphere</p>
+      <h2 id="register-title">Create your account</h2>
+      <p class="form-intro">A few details and your social space is ready.</p>
+
+      <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+        {{ errorMessage }}
+      </div>
+
+      <div *ngIf="successMessage" class="alert alert-success" role="status">
+        {{ successMessage }}
+      </div>
+
+      <form [formGroup]="registerForm" (ngSubmit)="submit()" novalidate>
+        <div class="mb-3">
+          <label for="fullName" class="form-label">Full name</label>
+          <input
+            id="fullName"
+            type="text"
+            class="form-control"
+            formControlName="fullName"
+            autocomplete="name"
+            [class.is-invalid]="fullName.invalid && fullName.touched"
+          >
+          <div class="invalid-feedback">Enter your full name.</div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="username" class="form-label">Username</label>
+            <input
+              id="username"
+              type="text"
+              class="form-control"
+              formControlName="username"
+              autocomplete="username"
+              [class.is-invalid]="username.invalid && username.touched"
+              [class.is-valid]="username.valid && usernameAvailable === true"
+            >
+            <div class="invalid-feedback">Use at least 3 letters, numbers, dots, dashes, or underscores.</div>
+            <div *ngIf="isCheckingUsername" class="form-text">
+              <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+              Checking username...
+            </div>
+            <div *ngIf="username.valid && usernameAvailable === true" class="valid-feedback d-block">
+              Username is available.
+            </div>
+            <div *ngIf="username.valid && usernameAvailable === false" class="invalid-feedback d-block">
+              Username is already taken.
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="email" class="form-label">Email</label>
+            <input
+              id="email"
+              type="email"
+              class="form-control"
+              formControlName="email"
+              autocomplete="email"
+              [class.is-invalid]="email.invalid && email.touched"
+            >
+            <div class="invalid-feedback">Enter a valid email address.</div>
+          </div>
+        </div>
+
+        <div class="row g-3 mt-3">
+          <div class="col-md-6">
+            <label for="password" class="form-label">Password</label>
+            <div class="input-group">
+              <input
+                id="password"
+                [type]="showPassword ? 'text' : 'password'"
+                class="form-control"
+                formControlName="password"
+                autocomplete="new-password"
+                [class.is-invalid]="password.invalid && password.touched"
+              >
+              <button
+                class="btn btn-outline-secondary password-toggle"
+                type="button"
+                (click)="togglePasswordVisibility()"
+                [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+              >
+                <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'" aria-hidden="true"></i>
+              </button>
+              <div class="invalid-feedback">Password must be at least 8 characters.</div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="confirmPassword" class="form-label">Confirm password</label>
+            <div class="input-group">
+              <input
+                id="confirmPassword"
+                [type]="showConfirmPassword ? 'text' : 'password'"
+                class="form-control"
+                formControlName="confirmPassword"
+                autocomplete="new-password"
+                [class.is-invalid]="(confirmPassword.invalid && confirmPassword.touched) || passwordsDoNotMatch"
+              >
+              <button
+                class="btn btn-outline-secondary password-toggle"
+                type="button"
+                (click)="toggleConfirmPasswordVisibility()"
+                [attr.aria-label]="showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'"
+              >
+                <i class="bi" [ngClass]="showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'" aria-hidden="true"></i>
+              </button>
+              <div class="invalid-feedback">
+                {{ passwordsDoNotMatch ? 'Passwords must match.' : 'Confirm your password.' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-options">
+          <div class="form-check">
+            <input id="rememberMe" class="form-check-input" type="checkbox" formControlName="rememberMe">
+            <label class="form-check-label" for="rememberMe">Remember my username</label>
+          </div>
+        </div>
+
+        <button class="btn btn-primary w-100 submit-btn" type="submit" [disabled]="isLoading">
+          <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+          {{ isLoading ? 'Creating account...' : 'Create account' }}
+        </button>
+      </form>
+
+      <div class="oauth-divider" aria-hidden="true">
+        <span>or sign up with</span>
+      </div>
+
+      <div class="oauth-grid">
+        <button class="btn btn-oauth" type="button" (click)="registerWithGoogle()" [disabled]="isLoading">
+          <i class="bi bi-google" aria-hidden="true"></i>
+          <span>Continue with Google</span>
+        </button>
+      </div>
+
+      <p class="switch-auth">
+        Already have an account?
+        <a routerLink="/login">Log in</a>
+      </p>
+    </div>
+  </section>
+</main>

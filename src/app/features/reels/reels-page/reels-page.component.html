@@ -1,0 +1,192 @@
+<main class="posts-page reels-page">
+  <section class="feed-layout">
+    <section #feedMain class="feed-main" aria-label="Reels" (scroll)="onReelsScroll()">
+      <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+        {{ errorMessage }}
+      </div>
+
+      <div *ngIf="isLoading" class="loading-state" role="status">
+        <span class="spinner-border text-primary" aria-hidden="true"></span>
+        <strong>Loading reels...</strong>
+      </div>
+
+      <div *ngIf="!isLoading && reels.length === 0" class="empty-state">
+        <i class="bi bi-camera-reels" aria-hidden="true"></i>
+        <h2>No reels yet</h2>
+        <p>Reels uploaded on ConnectSphere will appear here.</p>
+      </div>
+
+      <div class="reel-list" *ngIf="!isLoading && reels.length > 0">
+        <article
+          #reelCard
+          *ngFor="let reel of reels; trackBy: trackReel"
+          class="reel-card"
+          [class.reel-card-expanded]="isCommentsOpen(reel)"
+          [attr.data-reel-id]="reel.reelId"
+        >
+          <div class="reel-stage">
+            <div class="reel-media-column">
+              <div class="reel-video-shell">
+                <video
+                  #reelVideo
+                  class="reel-video"
+                  [src]="reel.videoUrl"
+                  [attr.data-reel-id]="reel.reelId"
+                  loop
+                  [muted]="isReelMuted(reel)"
+                  playsinline
+                  preload="metadata"
+                  (click)="activateReel(reel)"
+                  (loadedmetadata)="onVideoLoadedMetadata(reel)"
+                  (play)="onVideoPlay(reel)"
+                ></video>
+
+                <div *ngIf="canDeleteReel(reel)" class="reel-overlay reel-overlay-top">
+                  <button
+                    class="btn btn-light reel-delete-btn"
+                    type="button"
+                    (click)="deleteReel(reel)"
+                    aria-label="Delete reel"
+                  >
+                    <i class="bi bi-trash" aria-hidden="true"></i>
+                  </button>
+                </div>
+
+                <button
+                  class="reel-sound-btn"
+                  type="button"
+                  (click)="toggleSound(reel)"
+                  [attr.aria-label]="isReelMuted(reel) ? 'Turn sound on' : 'Turn sound off'"
+                >
+                  <i class="bi" [ngClass]="isReelMuted(reel) ? 'bi-volume-mute-fill' : 'bi-volume-up-fill'" aria-hidden="true"></i>
+                </button>
+
+                <div class="reel-overlay reel-overlay-bottom">
+                  <div class="reel-meta">
+                    <div class="reel-author">
+                    <a
+                      class="reel-author-link"
+                      [routerLink]="['/profile']"
+                      [queryParams]="{ userId: reel.authorId }"
+                      [attr.aria-label]="'Open ' + getAuthorName(reel) + ' profile'"
+                    >
+                      <img
+                        *ngIf="reel.authorProfilePicUrl; else reelInitial"
+                        class="reel-avatar"
+                        [src]="reel.authorProfilePicUrl"
+                        [alt]="getAuthorName(reel)"
+                      >
+                      <ng-template #reelInitial>
+                        <span class="reel-avatar" aria-hidden="true">{{ getAuthorName(reel).charAt(0) }}</span>
+                      </ng-template>
+                    </a>
+
+                    <div class="reel-author-copy">
+                      <h3>
+                        <a
+                          class="reel-author-name-link"
+                          [routerLink]="['/profile']"
+                          [queryParams]="{ userId: reel.authorId }"
+                        >
+                          {{ getAuthorName(reel) }}
+                        </a>
+                      </h3>
+                      <p>
+                        <a
+                          class="reel-author-username-link"
+                          [routerLink]="['/profile']"
+                          [queryParams]="{ userId: reel.authorId }"
+                        >
+                          @{{ reel.authorUsername || 'connectsphere' }}
+                        </a>
+                        <span> - {{ getCreatedLabel(reel) }}</span>
+                      </p>
+                    </div>
+                    </div>
+                    <p *ngIf="reel.caption" class="reel-caption">
+                      <span [class.reel-caption-expanded]="isCaptionExpanded(reel)">
+                        {{ getVisibleCaption(reel) }}
+                      </span>
+                      <button
+                        *ngIf="hasLongCaption(reel)"
+                        class="reel-caption-more"
+                        type="button"
+                        (click)="toggleCaption(reel)"
+                      >
+                        {{ isCaptionExpanded(reel) ? 'less' : 'more' }}
+                      </button>
+                    </p>
+                    <span class="reel-views">{{ reel.viewsCount }} {{ reel.viewsCount === 1 ? 'view' : 'views' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="reel-actions reel-overlay-side">
+                <app-reaction-bar
+                  *ngIf="canInteractWithReel(reel); else disabledLikeAction"
+                  class="reel-action-like"
+                  [targetId]="getInteractionTargetId(reel)"
+                  [targetType]="'POST'"
+                  [currentUserId]="currentUserId"
+                  [recipientId]="reel.authorId"
+                  [actorName]="currentUser?.fullName || currentUser?.username || 'Someone'"
+                ></app-reaction-bar>
+                <ng-template #disabledLikeAction>
+                  <button class="reel-action-btn reel-action-btn-disabled" type="button" disabled aria-label="Like unavailable">
+                    <i class="bi bi-heart" aria-hidden="true"></i>
+                    <span>0</span>
+                  </button>
+                </ng-template>
+
+                <button
+                  class="reel-action-btn"
+                  type="button"
+                  (click)="openComments(reel)"
+                  [disabled]="!canInteractWithReel(reel)"
+                  aria-label="Open comments"
+                >
+                  <i class="bi bi-chat" aria-hidden="true"></i>
+                  <span>{{ getCommentCount(reel) }}</span>
+                </button>
+
+                <button
+                  class="reel-action-btn"
+                  type="button"
+                  (click)="toggleBookmark(reel)"
+                  [disabled]="!canInteractWithReel(reel) || isBookmarkPending(reel)"
+                  aria-label="Toggle bookmark"
+                >
+                  <i class="bi" [ngClass]="isBookmarked(reel) ? 'bi-bookmark-fill' : 'bi-bookmark'" aria-hidden="true"></i>
+                  <span>{{ isBookmarked(reel) ? 'Saved' : 'Save' }}</span>
+                </button>
+              </div>
+            </div>
+
+            <aside *ngIf="isCommentsOpen(reel)" class="reel-comments-side" aria-label="Comments panel">
+              <div class="reel-comments-header">
+                <div>
+                  <h3>Comments</h3>
+                  <p>{{ getCommentCount(reel) }} {{ getCommentCount(reel) === 1 ? 'comment' : 'comments' }}</p>
+                </div>
+                <button class="reel-comments-close" type="button" (click)="closeComments()" aria-label="Close comments">
+                  <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
+              </div>
+
+              <div class="reel-comments-panel">
+                <app-comment-section
+                  [postId]="getInteractionTargetId(reel)"
+                  [postAuthorId]="reel.authorId"
+                  [currentUserId]="currentUserId"
+                  [currentUserName]="currentUser?.fullName || currentUser?.username || 'Someone'"
+                  (commentCountChange)="updateCommentCount(reel, $event)"
+                ></app-comment-section>
+              </div>
+            </aside>
+          </div>
+        </article>
+      </div>
+    </section>
+
+  </section>
+</main>

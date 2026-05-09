@@ -1,0 +1,377 @@
+<section class="comment-section" [class.comment-section-composer-top]="composerPosition === 'top'">
+  <header class="comment-header">
+    <div>
+      <h4 class="section-title">
+        <i class="bi bi-chat-text" aria-hidden="true"></i>
+        Comments
+      </h4>
+      <p class="comment-subtitle">{{ comments.length }} {{ comments.length === 1 ? 'comment' : 'comments' }}</p>
+    </div>
+    <button
+      *ngIf="showCloseButton"
+      class="comment-close-btn"
+      type="button"
+      (click)="requestClose()"
+      aria-label="Close comments"
+    >
+      <i class="bi bi-x-lg" aria-hidden="true"></i>
+    </button>
+  </header>
+
+  <ng-container *ngIf="composerPosition === 'top'" [ngTemplateOutlet]="commentComposer"></ng-container>
+
+  <div class="comment-feed">
+    <div *ngIf="errorMessage" class="comment-error" role="alert">
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="isLoading" class="comment-loading" role="status">
+      <span class="spinner-border spinner-border-sm text-primary" aria-hidden="true"></span>
+      Loading comments...
+    </div>
+
+    <div *ngIf="!isLoading && comments.length === 0" class="comment-empty">
+      <h5>No comments yet</h5>
+      <p>Start the conversation.</p>
+    </div>
+
+    <div class="comment-list" *ngIf="!isLoading && comments.length > 0">
+      <div *ngFor="let comment of comments" class="comment-thread">
+        <div class="comment-item">
+          <a
+            class="comment-author-link"
+            [routerLink]="['/profile']"
+            [queryParams]="{ userId: comment.authorId }"
+            [attr.aria-label]="'Open ' + getAuthorName(comment) + ' profile'"
+          >
+            <ng-container *ngIf="comment.authorProfilePicUrl; else topLevelInitials">
+              <img
+                class="comment-avatar comment-avatar-image"
+                [src]="comment.authorProfilePicUrl"
+                [alt]="getAuthorName(comment)"
+              >
+            </ng-container>
+            <ng-template #topLevelInitials>
+              <div class="comment-avatar" aria-hidden="true">{{ getAuthorInitials(comment) }}</div>
+            </ng-template>
+          </a>
+          <div class="comment-main">
+            <div class="comment-body">
+              <div class="comment-meta">
+                <a
+                  class="comment-author-name-link"
+                  [routerLink]="['/profile']"
+                  [queryParams]="{ userId: comment.authorId }"
+                >
+                  {{ getAuthorName(comment) }}
+                </a>
+                <span class="comment-time">{{ getTimeLabel(comment) }}</span>
+              </div>
+
+              <div *ngIf="editingCommentId === comment.commentId; else viewMode" class="comment-edit-form">
+                <textarea
+                  class="comment-input comment-edit-input"
+                  rows="2"
+                  [(ngModel)]="editContent"
+                  maxlength="2000"
+                ></textarea>
+                <div class="comment-edit-actions">
+                  <button class="btn btn-primary btn-sm" type="button" (click)="saveEdit(comment)" [disabled]="!editContent.trim()">Save</button>
+                  <button class="btn btn-outline-secondary btn-sm" type="button" (click)="cancelEdit()">Cancel</button>
+                </div>
+              </div>
+
+              <ng-template #viewMode>
+                <p class="comment-content">
+                  <ng-container *ngFor="let segment of getContentSegments(comment.content)">
+                    <button
+                      *ngIf="isMentionSegment(segment); else plainCommentSegment"
+                      class="comment-token comment-mention"
+                      type="button"
+                      (click)="onMentionClick(segment, $event)"
+                    >
+                      {{ segment }}
+                    </button>
+                    <ng-template #plainCommentSegment>{{ segment }}</ng-template>
+                  </ng-container>
+                </p>
+              </ng-template>
+
+              <div class="comment-actions">
+                <span *ngIf="comment.likesCount > 0" class="comment-like-count">
+                  {{ comment.likesCount }} {{ comment.likesCount === 1 ? 'like' : 'likes' }}
+                </span>
+                <button
+                  *ngIf="canInteract"
+                  class="comment-action-btn"
+                  type="button"
+                  (click)="toggleReplyForm(comment.commentId)"
+                >
+                  <i class="bi bi-reply" aria-hidden="true"></i> Reply
+                </button>
+                <button
+                  *ngIf="comment.replyCount > 0"
+                  class="comment-action-btn"
+                  type="button"
+                  (click)="toggleReplies(comment.commentId)"
+                >
+                  <i class="bi bi-chat-left-text" aria-hidden="true"></i>
+                  {{ expandedReplies.has(comment.commentId) ? 'Hide' : 'View' }}
+                  {{ comment.replyCount }} {{ comment.replyCount === 1 ? 'reply' : 'replies' }}
+                </button>
+                <button
+                  *ngIf="canModify(comment)"
+                  class="comment-action-btn"
+                  type="button"
+                  (click)="startEdit(comment)"
+                >
+                  <i class="bi bi-pencil" aria-hidden="true"></i> Edit
+                </button>
+                <button
+                  *ngIf="canModify(comment)"
+                  class="comment-action-btn comment-action-danger"
+                  type="button"
+                  (click)="deleteComment(comment)"
+                >
+                  <i class="bi bi-trash" aria-hidden="true"></i> Delete
+                </button>
+              </div>
+
+              <div *ngIf="showReplyForm.has(comment.commentId)" class="reply-form">
+                <div class="mention-input-wrap">
+                  <textarea
+                    #replyInput
+                    class="comment-input reply-input"
+                    rows="1"
+                    [ngModel]="getReplyContent(comment.commentId)"
+                    (ngModelChange)="setReplyContent(comment.commentId, $event)"
+                    (input)="onMentionInput(replyInput, 'reply:' + comment.commentId, getReplyContent(comment.commentId))"
+                    (click)="onMentionInput(replyInput, 'reply:' + comment.commentId, getReplyContent(comment.commentId))"
+                    (keyup)="onMentionInput(replyInput, 'reply:' + comment.commentId, getReplyContent(comment.commentId))"
+                    (blur)="hideMentionSuggestions()"
+                    placeholder="Write a reply..."
+                    maxlength="2000"
+                  ></textarea>
+                  <div
+                    *ngIf="showMentionSuggestions && activeMentionTarget === 'reply:' + comment.commentId"
+                    class="mention-suggestions"
+                    role="listbox"
+                    aria-label="Mention suggestions"
+                  >
+                    <button
+                      *ngFor="let user of mentionResults; trackBy: trackMention"
+                      class="mention-suggestion"
+                      type="button"
+                      (mousedown)="insertMention(user, replyInput)"
+                    >
+                      <img *ngIf="user.profilePicUrl; else replyMentionAvatarFallback" [src]="user.profilePicUrl" [alt]="user.fullName">
+                      <ng-template #replyMentionAvatarFallback>
+                        <span class="mention-avatar-fallback" aria-hidden="true">{{ user.fullName.charAt(0) || user.username.charAt(0) }}</span>
+                      </ng-template>
+                      <span class="mention-user-copy">
+                        <strong>{{ user.fullName }}</strong>
+                        <span>@{{ user.username }}</span>
+                      </span>
+                    </button>
+                  </div>
+                </div>
+                <div class="reply-form-actions">
+                    <button
+                      class="btn btn-primary btn-sm"
+                    type="button"
+                    (click)="submitReply(comment.commentId)"
+                    [disabled]="isSubmitting || !getReplyContent(comment.commentId).trim()"
+                  >
+                    Reply
+                  </button>
+                  <button class="btn btn-outline-secondary btn-sm" type="button" (click)="toggleReplyForm(comment.commentId)">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+
+              <div *ngIf="expandedReplies.has(comment.commentId)" class="replies-list">
+                <div *ngFor="let reply of repliesMap.get(comment.commentId)" class="comment-item reply-item">
+                  <a
+                    class="comment-author-link"
+                    [routerLink]="['/profile']"
+                    [queryParams]="{ userId: reply.authorId }"
+                    [attr.aria-label]="'Open ' + getAuthorName(reply) + ' profile'"
+                  >
+                    <ng-container *ngIf="reply.authorProfilePicUrl; else replyInitials">
+                      <img
+                        class="comment-avatar comment-avatar-image reply-avatar"
+                        [src]="reply.authorProfilePicUrl"
+                        [alt]="getAuthorName(reply)"
+                      >
+                    </ng-container>
+                    <ng-template #replyInitials>
+                      <div class="comment-avatar reply-avatar" aria-hidden="true">{{ getAuthorInitials(reply) }}</div>
+                    </ng-template>
+                  </a>
+                  <div class="comment-main">
+                    <div class="comment-body">
+                      <div class="comment-meta">
+                        <a
+                          class="comment-author-name-link"
+                          [routerLink]="['/profile']"
+                          [queryParams]="{ userId: reply.authorId }"
+                        >
+                          {{ getAuthorName(reply) }}
+                        </a>
+                        <span class="comment-time">{{ getTimeLabel(reply) }}</span>
+                      </div>
+
+                      <div *ngIf="editingCommentId === reply.commentId; else replyViewMode" class="comment-edit-form">
+                        <textarea
+                          class="comment-input comment-edit-input"
+                          rows="2"
+                          [(ngModel)]="editContent"
+                          maxlength="2000"
+                        ></textarea>
+                        <div class="comment-edit-actions">
+                          <button class="btn btn-primary btn-sm" type="button" (click)="saveEdit(reply)" [disabled]="!editContent.trim()">Save</button>
+                          <button class="btn btn-outline-secondary btn-sm" type="button" (click)="cancelEdit()">Cancel</button>
+                        </div>
+                      </div>
+
+                      <ng-template #replyViewMode>
+                        <p class="comment-content">
+                          <ng-container *ngFor="let segment of getContentSegments(reply.content)">
+                            <button
+                              *ngIf="isMentionSegment(segment); else plainReplySegment"
+                              class="comment-token comment-mention"
+                              type="button"
+                              (click)="onMentionClick(segment, $event)"
+                            >
+                              {{ segment }}
+                            </button>
+                            <ng-template #plainReplySegment>{{ segment }}</ng-template>
+                          </ng-container>
+                        </p>
+                      </ng-template>
+
+                      <div class="comment-actions">
+                        <span *ngIf="reply.likesCount > 0" class="comment-like-count">
+                          {{ reply.likesCount }} {{ reply.likesCount === 1 ? 'like' : 'likes' }}
+                        </span>
+                        <button
+                          *ngIf="canModify(reply)"
+                          class="comment-action-btn"
+                          type="button"
+                          (click)="startEdit(reply)"
+                        >
+                          <i class="bi bi-pencil" aria-hidden="true"></i> Edit
+                        </button>
+                        <button
+                          *ngIf="canModify(reply)"
+                          class="comment-action-btn comment-action-danger"
+                          type="button"
+                          (click)="deleteComment(reply)"
+                        >
+                          <i class="bi bi-trash" aria-hidden="true"></i> Delete
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      *ngIf="canInteract"
+                      class="comment-like-side"
+                      type="button"
+                      [attr.aria-label]="reply.likesCount > 0 ? 'Unlike comment' : 'Like comment'"
+                      (click)="reply.likesCount > 0 ? unlikeComment(reply) : likeComment(reply)"
+                      [disabled]="likingSet.has(reply.commentId)"
+                    >
+                      <i class="bi" [ngClass]="reply.likesCount > 0 ? 'bi-heart-fill' : 'bi-heart'" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              *ngIf="canInteract"
+              class="comment-like-side"
+              type="button"
+              [attr.aria-label]="comment.likesCount > 0 ? 'Unlike comment' : 'Like comment'"
+              (click)="comment.likesCount > 0 ? unlikeComment(comment) : likeComment(comment)"
+              [disabled]="likingSet.has(comment.commentId)"
+            >
+              <i class="bi" [ngClass]="comment.likesCount > 0 ? 'bi-heart-fill' : 'bi-heart'" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-container *ngIf="composerPosition === 'bottom'" [ngTemplateOutlet]="commentComposer"></ng-container>
+
+  <ng-template #commentComposer>
+    <form *ngIf="canInteract; else guestCommentPrompt" class="add-comment-form" (ngSubmit)="addComment()">
+      <div class="comment-composer mention-input-wrap">
+        <button
+          class="emoji-trigger"
+          type="button"
+          aria-label="Choose emoji"
+          [attr.aria-expanded]="showEmojiPicker"
+          (click)="toggleEmojiPicker()"
+        >
+          <i class="bi bi-emoji-smile" aria-hidden="true"></i>
+        </button>
+        <div *ngIf="showEmojiPicker" class="emoji-picker" aria-label="Emoji picker">
+          <button
+            *ngFor="let emoji of emojiOptions"
+            class="emoji-option"
+            type="button"
+            (click)="addEmojiToComment(emoji, newCommentInput)"
+          >
+            {{ emoji }}
+          </button>
+        </div>
+        <textarea
+          #newCommentInput
+          class="comment-input comment-input-with-emoji"
+          rows="2"
+          [(ngModel)]="newCommentContent"
+          name="newComment"
+          (input)="onMentionInput(newCommentInput, 'comment', newCommentContent)"
+          (click)="onMentionInput(newCommentInput, 'comment', newCommentContent)"
+          (keyup)="onMentionInput(newCommentInput, 'comment', newCommentContent)"
+          (blur)="hideMentionSuggestions()"
+          placeholder="Add a comment..."
+          [disabled]="isSubmitting"
+          maxlength="2000"
+        ></textarea>
+        <div *ngIf="showMentionSuggestions && activeMentionTarget === 'comment'" class="mention-suggestions" role="listbox" aria-label="Mention suggestions">
+          <button
+            *ngFor="let user of mentionResults; trackBy: trackMention"
+            class="mention-suggestion"
+            type="button"
+            (mousedown)="insertMention(user, newCommentInput)"
+          >
+            <img *ngIf="user.profilePicUrl; else mentionAvatarFallback" [src]="user.profilePicUrl" [alt]="user.fullName">
+            <ng-template #mentionAvatarFallback>
+              <span class="mention-avatar-fallback" aria-hidden="true">{{ user.fullName.charAt(0) || user.username.charAt(0) }}</span>
+            </ng-template>
+            <span class="mention-user-copy">
+              <strong>{{ user.fullName }}</strong>
+              <span>@{{ user.username }}</span>
+            </span>
+          </button>
+        </div>
+      </div>
+      <button
+        class="btn btn-primary btn-sm post-comment-btn"
+        type="submit"
+        [disabled]="isSubmitting || !newCommentContent.trim()"
+      >
+        <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        {{ isSubmitting ? 'Posting...' : 'Post' }}
+      </button>
+    </form>
+    <ng-template #guestCommentPrompt>
+      <p class="comment-subtitle">Log in to comment or reply.</p>
+    </ng-template>
+  </ng-template>
+</section>

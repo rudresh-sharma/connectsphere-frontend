@@ -1,0 +1,178 @@
+<main class="search-page">
+  <section class="search-header">
+    <button class="back-btn" type="button" (click)="goBack()" aria-label="Go back">
+      <i class="bi bi-arrow-left" aria-hidden="true"></i>
+    </button>
+
+    <form class="search-box" (ngSubmit)="search()">
+      <input
+        type="search"
+        name="query"
+        [(ngModel)]="query"
+        (ngModelChange)="scheduleSearch()"
+        placeholder="Try a username, post text, or #hashtag"
+        class="search-input"
+        autocomplete="off"
+      >
+    </form>
+  </section>
+
+  <nav class="search-tabs" aria-label="Search result categories">
+    <button
+      type="button"
+      class="search-tab"
+      [class.active]="activeTab === 'users'"
+      (click)="selectTab('users')"
+    >
+      Users
+      <span>{{ userResults.length }}</span>
+    </button>
+    <button
+      type="button"
+      class="search-tab"
+      [class.active]="activeTab === 'posts'"
+      (click)="selectTab('posts')"
+    >
+      Posts
+      <span>{{ postResults.length }}</span>
+    </button>
+    <button
+      type="button"
+      class="search-tab"
+      [class.active]="activeTab === 'hashtags'"
+      (click)="selectTab('hashtags')"
+    >
+      Hashtags
+      <span>{{ hashtagResults.length }}</span>
+    </button>
+  </nav>
+
+  <section class="trending-section" *ngIf="trendingHashtags.length > 0 && !hasSearched">
+    <h2>Trending hashtags</h2>
+    <div class="trending-tags">
+      <button
+        *ngFor="let tag of trendingHashtags"
+        class="trending-tag"
+        type="button"
+        (click)="searchHashtag(tag.tag)"
+      >
+        #{{ tag.tag }}
+        <small>{{ tag.postCount }} posts</small>
+      </button>
+    </div>
+  </section>
+
+  <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+  <div *ngIf="searching" class="loading">Searching across users, posts, and hashtags...</div>
+
+  <section *ngIf="!searching && hasSearched" class="results-panel">
+    <article class="result-section" *ngIf="activeTab === 'users'">
+      <div class="section-title">
+        <h2>Users</h2>
+        <span>{{ userResults.length }}</span>
+      </div>
+
+      <a
+        *ngFor="let user of userResults"
+        class="user-card"
+        [routerLink]="['/profile']"
+        [queryParams]="{ userId: user.userId }"
+      >
+        <img
+          *ngIf="user.profilePicUrl; else userInitial"
+          [src]="user.profilePicUrl"
+          [alt]="user.fullName || user.username"
+          class="avatar"
+        >
+        <ng-template #userInitial>
+          <span class="avatar avatar-fallback">{{ (user.fullName || user.username || 'U').charAt(0) }}</span>
+        </ng-template>
+        <span>
+          <strong>{{ user.fullName || user.username }}</strong>
+          <small>@{{ user.username }}</small>
+        </span>
+      </a>
+
+      <p *ngIf="userResults.length === 0" class="section-empty">No users matched this search.</p>
+    </article>
+
+    <article class="result-section" *ngIf="activeTab === 'posts'">
+      <div class="section-title">
+        <h2>Posts</h2>
+        <span>{{ postResults.length }}</span>
+      </div>
+
+      <a
+        *ngFor="let post of postResults"
+        class="search-post-card"
+        [routerLink]="['/posts', getPostId(post)]"
+      >
+        <header class="search-post-header">
+          <div class="search-post-author">
+            <span
+              class="search-post-avatar-link"
+            >
+              <img
+                *ngIf="getPostProfilePicUrl(post); else postInitial"
+                class="search-post-avatar"
+                [src]="getPostProfilePicUrl(post)!"
+                [alt]="getPostAuthor(post)"
+              >
+              <ng-template #postInitial>
+                <span class="search-post-avatar search-post-avatar-fallback" aria-hidden="true">
+                  {{ getPostInitials(post) }}
+                </span>
+              </ng-template>
+            </span>
+
+            <div class="search-post-author-meta">
+              <span class="search-post-name">
+                {{ getPostAuthor(post) }}
+              </span>
+              <div class="search-post-subtitle">
+                <span>@{{ getPostUsername(post) }}</span>
+                <span>&middot;</span>
+                <span>{{ getPostCreatedLabel(post) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <span class="visibility-badge">{{ post.visibility }}</span>
+        </header>
+
+        <p class="search-post-content collapsed">
+          {{ post.content }}
+        </p>
+
+        <footer class="search-post-footer">
+          <span class="view-link">Open full post</span>
+        </footer>
+      </a>
+
+      <p *ngIf="postResults.length === 0" class="section-empty">No posts matched this search.</p>
+    </article>
+
+    <article class="result-section" *ngIf="activeTab === 'hashtags'">
+      <div class="section-title">
+        <h2>Hashtags</h2>
+        <span>{{ hashtagResults.length }}</span>
+      </div>
+
+      <button
+        *ngFor="let tag of hashtagResults"
+        class="hashtag-card"
+        type="button"
+        (click)="searchHashtag(tag.tag)"
+      >
+        <span class="hashtag-name">#{{ tag.tag }}</span>
+        <span class="hashtag-count">{{ tag.postCount }} posts</span>
+      </button>
+
+      <p *ngIf="hashtagResults.length === 0" class="section-empty">No hashtags matched this search.</p>
+    </article>
+  </section>
+
+  <div *ngIf="!searching && hasSearched && !hasAnyResults" class="empty">
+    No results found for "{{ query }}".
+  </div>
+</main>

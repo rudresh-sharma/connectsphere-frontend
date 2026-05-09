@@ -1,0 +1,69 @@
+<div class="reaction-bar">
+  <div
+    *ngIf="topReactionSummary.length"
+    class="reaction-summary-btn"
+    aria-label="Reaction summary"
+  >
+    <span class="reaction-stack" aria-hidden="true">
+      <span
+        *ngFor="let reaction of topReactionSummary; let index = index"
+        class="reaction-stack-icon"
+        [style.zIndex]="topReactionSummary.length - index"
+      >
+        {{ reaction.emoji }}
+      </span>
+    </span>
+    <span class="reaction-summary-text">
+      {{ totalCount }}
+    </span>
+  </div>
+
+  <div
+    class="reaction-main-wrap"
+    (mouseenter)="openPicker()"
+    (mouseleave)="onPickerMouseLeave()"
+  >
+    <button
+      class="reaction-main-btn"
+      [class.active]="hasLiked"
+      type="button"
+      (click)="onPrimaryAction()"
+      [disabled]="loading"
+    >
+      <span class="reaction-main-icon" aria-hidden="true">{{ currentReactionEmoji }}</span>
+      <span class="reaction-main-label">{{ currentReactionLabel }}</span>
+      <i class="bi bi-chevron-down reaction-main-caret" aria-hidden="true"></i>
+    </button>
+
+    <div
+      *ngIf="pickerOpen"
+      class="reaction-picker"
+      role="dialog"
+      aria-label="Reaction options"
+      (mouseenter)="openPicker()"
+      (mouseleave)="onPickerMouseLeave()"
+    >
+      <button
+        *ngFor="let reaction of reactionOptions"
+        class="reaction-picker-item"
+        [class.active]="isActiveReaction(reaction.type)"
+        type="button"
+        (click)="onReactionClick(reaction.type)"
+        [disabled]="loading"
+      >
+        <span class="reaction-picker-emoji" aria-hidden="true">{{ reaction.emoji }}</span>
+        <span class="reaction-picker-label">{{ reaction.label }}</span>
+        <span class="reaction-picker-count">{{ getReactionCount(reaction.type) }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="showGuestPrompt" class="guest-like-toast" role="status">
+    <strong>Want to like this post?</strong>
+    <span>Log in or register to react.</span>
+    <div class="guest-like-actions">
+      <a routerLink="/login">Log in</a>
+      <a routerLink="/register">Register</a>
+    </div>
+  </div>
+</div>

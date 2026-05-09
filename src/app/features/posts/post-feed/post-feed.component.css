@@ -1,0 +1,130 @@
+.posts-page {
+  min-height: 100vh;
+  padding-left: 92px;
+  background: #fff;
+  color: var(--cs-ink);
+}
+
+.feed-layout {
+  display: grid;
+  width: min(640px, calc(100% - 36px));
+  margin: 0 auto;
+  padding: 18px 0 56px;
+}
+
+.loading-state,
+.empty-state {
+  border: 1px solid rgba(217, 225, 236, 0.9);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 14px 42px rgba(16, 24, 40, 0.07);
+}
+
+.feed-main {
+  display: grid;
+  gap: 14px;
+}
+
+.mobile-home-header,
+.mobile-home-brand {
+  display: none;
+}
+
+.loading-state,
+.empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 34px;
+  text-align: center;
+}
+
+.empty-state .bi {
+  color: var(--cs-primary);
+  font-size: 2.3rem;
+}
+
+.empty-state h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.empty-state p {
+  margin: 0;
+  color: var(--cs-muted);
+}
+
+.post-list {
+  display: grid;
+  gap: 24px;
+}
+
+.create-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15,23,42,.42);
+  backdrop-filter: blur(8px);
+}
+
+.create-modal {
+  position: relative;
+  width: min(820px, 100%);
+  max-height: min(86vh, 760px);
+  overflow: auto;
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: #f1f5fb;
+  color: #111827;
+}
+
+.modal-close:hover,
+.modal-close:focus-visible {
+  background: #111827;
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .posts-page {
+    padding-left: 0;
+    padding-bottom: 72px;
+  }
+}
+
+@media (max-width: 560px) {
+  .mobile-home-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .mobile-home-brand {
+    display: block;
+    margin: 0;
+    color: #0f172a;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.7rem;
+    font-weight: 800;
+  }
+
+  .feed-layout {
+    padding-top: 10px;
+    width: min(100%, calc(100% - 24px));
+  }
+}

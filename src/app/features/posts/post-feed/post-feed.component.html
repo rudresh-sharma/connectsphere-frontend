@@ -1,0 +1,66 @@
+<main class="posts-page">
+  <section class="feed-layout">
+    <section class="feed-main" aria-label="Posts">
+      <div class="mobile-home-header">
+        <h1 class="mobile-home-brand">ConnectSphere</h1>
+        <app-notification-bell></app-notification-bell>
+      </div>
+
+      <!-- Story Bar -->
+      <app-story-bar></app-story-bar>
+
+      <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+        {{ errorMessage }}
+      </div>
+
+      <div *ngIf="isLoading" class="loading-state" role="status">
+        <span class="spinner-border text-primary" aria-hidden="true"></span>
+        <strong>Loading posts...</strong>
+      </div>
+
+      <div *ngIf="!isLoading && posts.length === 0" class="empty-state">
+        <i class="bi bi-chat-square-text" aria-hidden="true"></i>
+        <h2>No posts yet</h2>
+        <p>Create the first public ConnectSphere post or try a different search.</p>
+      </div>
+
+      <div class="post-list" *ngIf="!isLoading && posts.length > 0">
+        <app-post-card
+          *ngFor="let post of posts"
+          [post]="post"
+          [currentUserId]="currentUserId"
+          [currentUser]="currentUser"
+          (liked)="likePost($event)"
+          (updated)="updatePost($event)"
+          (deleted)="deletePost($event)"
+        ></app-post-card>
+      </div>
+    </section>
+
+  </section>
+
+  <div
+    *ngIf="isCreateModalOpen"
+    class="create-modal-backdrop"
+    role="presentation"
+    (click)="closeCreateModal()"
+  >
+    <section
+      class="create-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="create-post-title"
+      (click)="$event.stopPropagation()"
+    >
+      <button class="modal-close" type="button" (click)="closeCreateModal()" aria-label="Close create post">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+
+      <app-post-create
+        [currentUserId]="currentUserId"
+        [isSubmitting]="isCreating"
+        (postCreated)="createPost($event)"
+      ></app-post-create>
+    </section>
+  </div>
+</main>

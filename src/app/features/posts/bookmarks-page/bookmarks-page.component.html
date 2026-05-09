@@ -1,0 +1,38 @@
+<main class="posts-page">
+  <header class="feed-hero">
+    <div>
+      <p class="eyebrow">ConnectSphere</p>
+      <h1>Saved posts</h1>
+      <p>Keep your bookmarked posts in one place so you can come back to them anytime.</p>
+    </div>
+  </header>
+
+  <section class="feed-layout">
+    <section class="feed-main" aria-label="Saved posts">
+      <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+        {{ errorMessage }}
+      </div>
+
+      <div *ngIf="isLoading" class="loading-state" role="status">
+        <span class="spinner-border text-primary" aria-hidden="true"></span>
+        <strong>Loading saved posts...</strong>
+      </div>
+
+      <div *ngIf="!isLoading && posts.length === 0" class="empty-state">
+        <i class="bi bi-bookmark" aria-hidden="true"></i>
+        <h2>No bookmarks yet</h2>
+        <p>Save a post from the feed and it will appear here.</p>
+      </div>
+
+      <div class="post-list" *ngIf="!isLoading && posts.length > 0">
+        <app-post-card
+          *ngFor="let post of posts"
+          [post]="post"
+          [currentUserId]="currentUserId"
+          [currentUser]="currentUser"
+        ></app-post-card>
+      </div>
+    </section>
+
+  </section>
+</main>

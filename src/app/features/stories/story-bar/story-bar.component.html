@@ -1,0 +1,98 @@
+<div class="story-bar-wrapper" *ngIf="currentUserId || storyGroups.length > 0">
+  <div class="story-bar">
+    <div *ngIf="currentUserId && !hasOwnStory" class="story-item create-story" (click)="toggleCreate()">
+      <div class="story-ring create">
+        <span class="plus-icon">+</span>
+      </div>
+      <span class="story-label">Add Story</span>
+    </div>
+
+    <div *ngFor="let group of storyGroups; let groupIndex = index" class="story-item" (click)="openStoryGroup(groupIndex)">
+      <div class="story-ring" [class.viewed]="isStoryGroupViewed(group)">
+        <img *ngIf="group.authorProfilePicUrl" [src]="group.authorProfilePicUrl" [alt]="group.authorUsername" class="story-avatar">
+        <div *ngIf="!group.authorProfilePicUrl" class="story-avatar initials">{{ getInitials(group.authorUsername) }}</div>
+        <button
+          *ngIf="group.authorId === currentUserId"
+          class="story-add-badge"
+          type="button"
+          aria-label="Add another story"
+          (click)="showCreate($event)"
+        >
+          +
+        </button>
+      </div>
+      <span class="story-label">{{ group.authorUsername || 'User' }}</span>
+    </div>
+  </div>
+
+  <div *ngIf="showCreateForm" class="create-form">
+    <p *ngIf="errorMessage" class="story-error">{{ errorMessage }}</p>
+    <input type="text" placeholder="Add a caption..." [(ngModel)]="caption" class="caption-input">
+    <label class="file-label">
+      {{ isUploading ? 'Uploading...' : 'Choose Photo/Video' }}
+      <input type="file" accept="image/*,video/*" (change)="onFileSelected($event)" [disabled]="isUploading" hidden>
+    </label>
+  </div>
+</div>
+
+<div *ngIf="viewingStory" class="story-viewer-overlay" (click)="closeViewer()">
+  <div class="story-viewer" (click)="$event.stopPropagation()">
+    <div *ngIf="activeStoryGroup" class="viewer-progress">
+      <button
+        *ngFor="let story of activeStoryGroup.stories; let storyIndex = index"
+        class="viewer-progress-tab"
+        [class.active]="storyIndex === viewingStoryIndex"
+        type="button"
+        (click)="selectStoryInViewer(storyIndex, $event)"
+        [attr.aria-label]="'Open story ' + (storyIndex + 1)"
+        [style.--story-progress]="getStoryProgress(storyIndex)"
+      ></button>
+    </div>
+
+    <div class="viewer-header">
+      <div class="viewer-author">
+        <img *ngIf="viewingStory.authorProfilePicUrl" [src]="viewingStory.authorProfilePicUrl" class="viewer-avatar" alt="">
+        <span>{{ viewingStory.authorUsername || 'User' }}</span>
+      </div>
+      <button class="close-btn" type="button" (click)="closeViewer()">x</button>
+    </div>
+
+    <button class="viewer-nav viewer-nav-prev" type="button" (click)="goToPreviousStory($event)" aria-label="Previous story">
+      <i class="bi bi-chevron-left" aria-hidden="true"></i>
+    </button>
+    <button class="viewer-nav viewer-nav-next" type="button" (click)="goToNextStory($event)" aria-label="Next story">
+      <i class="bi bi-chevron-right" aria-hidden="true"></i>
+    </button>
+
+    <div class="viewer-media">
+      <img *ngIf="viewingStory.mediaType === 'IMAGE'" [src]="viewingStory.mediaUrl" alt="Story">
+      <video
+        *ngIf="viewingStory.mediaType === 'VIDEO'"
+        #storyVideo
+        [src]="viewingStory.mediaUrl"
+        controls
+        autoplay
+        playsinline
+        (loadedmetadata)="onStoryVideoLoaded()"
+        (ended)="onStoryVideoEnded()"
+      ></video>
+    </div>
+    <div class="viewer-footer">
+      <p *ngIf="viewingStory.caption" class="viewer-caption">{{ viewingStory.caption }}</p>
+      <div class="viewer-actions">
+        <button
+          *ngIf="currentUserId"
+          class="story-like-btn"
+          [class.liked]="isStoryLiked(viewingStory.storyId)"
+          type="button"
+          (click)="toggleStoryLike(viewingStory, $event)"
+        >
+          <i class="bi" [class.bi-heart]="!isStoryLiked(viewingStory.storyId)" [class.bi-heart-fill]="isStoryLiked(viewingStory.storyId)" aria-hidden="true"></i>
+          <span>{{ isStoryLiked(viewingStory.storyId) ? 'Liked' : 'Like' }}</span>
+        </button>
+        <small *ngIf="viewingStory.authorId === currentUserId">{{ viewingStory.viewsCount }} views</small>
+        <button *ngIf="viewingStory.authorId === currentUserId" class="delete-story-btn" type="button" (click)="deleteStory(viewingStory.storyId)">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>

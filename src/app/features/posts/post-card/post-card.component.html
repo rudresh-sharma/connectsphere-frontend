@@ -1,0 +1,297 @@
+<article class="post-card" [class.promoted-post]="isPromoted">
+  <header class="post-header">
+    <div class="post-author">
+      <a class="author-avatar-link" [routerLink]="['/profile']" [queryParams]="{ userId: post.authorId }" [attr.aria-label]="'Open ' + authorName + ' profile'">
+        <img
+          *ngIf="authorProfilePicUrl; else authorInitialsAvatar"
+          class="avatar avatar-image"
+          [src]="authorProfilePicUrl"
+          [alt]="authorName"
+        >
+        <ng-template #authorInitialsAvatar>
+          <div class="avatar" aria-hidden="true">{{ authorInitials }}</div>
+        </ng-template>
+      </a>
+      <div>
+        <h3>
+          <a class="author-name-link" [routerLink]="['/profile']" [queryParams]="{ userId: post.authorId }">
+            {{ authorName }}
+          </a>
+        </h3>
+        <p class="author-username">@{{ authorUsername }}</p>
+        <span *ngIf="isPromoted" class="sponsored-badge">
+          <i class="bi bi-stars" aria-hidden="true"></i>
+          Sponsored
+        </span>
+      </div>
+    </div>
+
+    <div *ngIf="canModify" class="post-menu">
+      <button
+        class="post-menu-trigger"
+        type="button"
+        (click)="toggleMenu()"
+        [attr.aria-expanded]="menuOpen"
+        aria-label="Post options"
+      >
+        <i class="bi bi-three-dots" aria-hidden="true"></i>
+      </button>
+      <div *ngIf="menuOpen" class="post-menu-panel">
+        <button type="button" (click)="toggleEdit()" [disabled]="!postId">
+          <i class="bi bi-pencil-square" aria-hidden="true"></i>
+          Edit
+        </button>
+        <button type="button" (click)="promotePost()" [disabled]="!postId || promotePending || isPromoted || isPromotionPending">
+          <i class="bi bi-megaphone" aria-hidden="true"></i>
+          {{ isPromoted ? 'Promoted' : isPromotionPending ? 'Pending approval' : 'Promote' }}
+        </button>
+        <button class="danger" type="button" (click)="deletePost()" [disabled]="!postId">
+          <i class="bi bi-trash" aria-hidden="true"></i>
+          Delete
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div *ngIf="!editMode; else editPost">
+    <div *ngIf="hasMedia" class="media-grid">
+      <ng-container *ngFor="let url of displayMediaUrls">
+        <video
+          *ngIf="isVideo(url); else imageMedia"
+          #feedVideo
+          [src]="url"
+          controls
+          playsinline
+          preload="metadata"
+          loop
+        ></video>
+        <ng-template #imageMedia>
+          <img [src]="url" alt="Post media">
+        </ng-template>
+      </ng-container>
+    </div>
+
+    <div *ngIf="!hasMedia && post.content" class="post-text-body">
+      <p class="post-content">
+        <ng-container *ngFor="let segment of getContentSegments(visibleContent)">
+          <button
+            *ngIf="isHashtagSegment(segment); else textMentionOrPlainSegment"
+            class="post-token post-hashtag"
+            type="button"
+            (click)="onHashtagClick(segment, $event)"
+          >
+            {{ segment }}
+          </button>
+          <ng-template #textMentionOrPlainSegment>
+            <button
+              *ngIf="isMentionSegment(segment); else textPlainSegment"
+              class="post-token post-mention"
+              type="button"
+              (click)="onMentionClick(segment, $event)"
+            >
+              {{ segment }}
+            </button>
+            <ng-template #textPlainSegment>{{ segment }}</ng-template>
+          </ng-template>
+        </ng-container>
+      </p>
+      <button *ngIf="hasLongContent" class="post-content-more" type="button" (click)="toggleContent()">
+        {{ contentExpanded ? 'less' : 'more' }}
+      </button>
+    </div>
+
+  </div>
+
+  <ng-template #editPost>
+    <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="edit-form">
+      <label class="form-label" for="editContent-{{ postId }}">Content</label>
+      <textarea
+        id="editContent-{{ postId }}"
+        class="form-control"
+        rows="3"
+        formControlName="content"
+      ></textarea>
+
+      <div class="row g-3 mt-1">
+        <div class="col-md-6">
+          <label class="form-label" for="editMedia-{{ postId }}">Media URL</label>
+          <input id="editMedia-{{ postId }}" class="form-control" type="url" formControlName="mediaUrl">
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <label class="form-label" for="editType-{{ postId }}">Type</label>
+          <select id="editType-{{ postId }}" class="form-select" formControlName="postType">
+            <option *ngFor="let type of postTypes" [value]="type">{{ type }}</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <label class="form-label" for="editVisibility-{{ postId }}">Visibility</label>
+          <select id="editVisibility-{{ postId }}" class="form-select" formControlName="visibility">
+            <option *ngFor="let visibility of visibilities" [value]="visibility">{{ visibility }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="edit-actions">
+        <button class="btn btn-primary btn-sm" type="submit">Save</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" (click)="toggleEdit()">Cancel</button>
+      </div>
+    </form>
+  </ng-template>
+
+  <footer class="post-actions">
+    <app-reaction-bar
+      [targetId]="postId"
+      [targetType]="'POST'"
+      [currentUserId]="currentUserId"
+      [recipientId]="post.authorId"
+      [actorName]="currentUser?.fullName || currentUser?.username || 'Someone'"
+      [initialCount]="likeCount"
+    ></app-reaction-bar>
+    <button class="btn btn-light action-btn" type="button" (click)="openCommentsModal()">
+      <i class="bi bi-chat" aria-hidden="true"></i>
+      <span>{{ commentCount }}</span>
+    </button>
+    <button class="btn btn-light action-btn" type="button" (click)="sharePost()" [disabled]="sharePending">
+      <i class="bi bi-share" aria-hidden="true"></i>
+      <span>{{ shareCount }}</span>
+    </button>
+    <button
+      *ngIf="canModify"
+      class="btn btn-light action-btn action-btn-promote"
+      type="button"
+      (click)="promotePost()"
+      [disabled]="promotePending || isPromoted || isPromotionPending"
+    >
+      <i class="bi bi-megaphone" aria-hidden="true"></i>
+      <span>{{ isPromoted ? 'Promoted' : isPromotionPending ? 'Pending' : 'Promote' }}</span>
+    </button>
+    <button *ngIf="currentUserId" class="btn btn-light action-btn action-btn-bookmark" type="button" (click)="toggleBookmark()" [disabled]="bookmarkPending">
+      <i class="bi" [ngClass]="isBookmarked ? 'bi-bookmark-fill' : 'bi-bookmark'" aria-hidden="true"></i>
+      <span>{{ isBookmarked ? 'Saved' : 'Save' }}</span>
+    </button>
+  </footer>
+
+  <div *ngIf="!editMode && hasMedia && post.content" class="post-content-wrap post-content-after-media">
+    <p class="post-content">
+      <strong class="post-caption-author">{{ authorUsername }}</strong>
+      <ng-container *ngFor="let segment of getContentSegments(visibleContent)">
+        <button
+          *ngIf="isHashtagSegment(segment); else mentionOrPlainSegment"
+          class="post-token post-hashtag"
+          type="button"
+          (click)="onHashtagClick(segment, $event)"
+        >
+          {{ segment }}
+        </button>
+        <ng-template #mentionOrPlainSegment>
+          <button
+            *ngIf="isMentionSegment(segment); else plainSegment"
+            class="post-token post-mention"
+            type="button"
+            (click)="onMentionClick(segment, $event)"
+          >
+            {{ segment }}
+          </button>
+          <ng-template #plainSegment>{{ segment }}</ng-template>
+        </ng-template>
+      </ng-container>
+    </p>
+    <button *ngIf="hasLongContent" class="post-content-more" type="button" (click)="toggleContent()">
+      {{ contentExpanded ? 'less' : 'more' }}
+    </button>
+  </div>
+
+  <p class="post-date">{{ createdLabel }}</p>
+  <p *ngIf="paymentMessage" class="payment-message" [class.success]="isPromoted">{{ paymentMessage }}</p>
+
+  <div
+    *ngIf="showCommentsModal"
+    class="comments-modal-backdrop"
+    role="presentation"
+    (click)="closeCommentsModal()"
+  >
+    <section
+      class="comments-modal"
+      [class.comments-modal-video]="hasVideoMedia"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Comments"
+      (click)="$event.stopPropagation()"
+    >
+      <button class="comments-modal-close" type="button" (click)="closeCommentsModal()" aria-label="Close comments">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+
+      <div class="comments-modal-grid">
+        <div class="comments-modal-preview">
+          <div *ngIf="hasMedia" class="comments-modal-media">
+            <ng-container *ngFor="let url of displayMediaUrls">
+              <video *ngIf="isVideo(url); else commentModalImage" [src]="url" controls></video>
+              <ng-template #commentModalImage>
+                <img [src]="url" alt="Post media">
+              </ng-template>
+            </ng-container>
+          </div>
+
+          <div *ngIf="!hasMedia" class="comments-modal-text-preview">
+            <div class="post-author comments-modal-author">
+              <a class="author-avatar-link" [routerLink]="['/profile']" [queryParams]="{ userId: post.authorId }">
+                <img
+                  *ngIf="authorProfilePicUrl; else modalAuthorInitials"
+                  class="avatar avatar-image"
+                  [src]="authorProfilePicUrl"
+                  [alt]="authorName"
+                >
+                <ng-template #modalAuthorInitials>
+                  <div class="avatar" aria-hidden="true">{{ authorInitials }}</div>
+                </ng-template>
+              </a>
+              <div>
+                <h3>{{ authorName }}</h3>
+                <p class="author-username">@{{ authorUsername }}</p>
+              </div>
+            </div>
+
+            <p class="post-content comments-modal-content">
+              <ng-container *ngFor="let segment of getContentSegments(post.content)">
+                <button
+                  *ngIf="isHashtagSegment(segment); else modalMentionOrPlainSegment"
+                  class="post-token post-hashtag"
+                  type="button"
+                  (click)="onHashtagClick(segment, $event)"
+                >
+                  {{ segment }}
+                </button>
+                <ng-template #modalMentionOrPlainSegment>
+                  <button
+                    *ngIf="isMentionSegment(segment); else modalPlainSegment"
+                    class="post-token post-mention"
+                    type="button"
+                    (click)="onMentionClick(segment, $event)"
+                  >
+                    {{ segment }}
+                  </button>
+                  <ng-template #modalPlainSegment>{{ segment }}</ng-template>
+                </ng-template>
+              </ng-container>
+            </p>
+          </div>
+        </div>
+
+        <div class="comments-modal-panel">
+          <app-comment-section
+            class="post-modal-comments"
+            [postId]="postId"
+            [postAuthorId]="post.authorId"
+            [currentUserId]="currentUserId"
+            [currentUserName]="currentUser?.fullName || currentUser?.username || 'Someone'"
+            [showCloseButton]="true"
+            [composerPosition]="hasVideoMedia ? 'bottom' : 'bottom'"
+            (commentCountChange)="onCommentCountChange($event)"
+            (closeRequested)="closeCommentsModal()"
+            ></app-comment-section>
+        </div>
+      </div>
+    </section>
+  </div>
+</article>

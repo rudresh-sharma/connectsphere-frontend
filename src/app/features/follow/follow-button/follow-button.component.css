@@ -1,0 +1,13 @@
+.follow-button-wrap {
+  display: inline-grid;
+  gap: 4px;
+}
+
+.follow-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 118px;
+  min-height: 42px;
+  font-weight: 900;
+}

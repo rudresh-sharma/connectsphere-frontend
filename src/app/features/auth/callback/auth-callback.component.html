@@ -1,0 +1,77 @@
+<main class="callback-shell">
+  <section class="callback-card" aria-live="polite">
+    <div class="brand-mark">
+      <span class="brand-icon" aria-hidden="true">CS</span>
+      <span>ConnectSphere</span>
+    </div>
+
+    <div class="callback-state">
+      <span class="spinner-border text-primary" aria-hidden="true"></span>
+      <h1>Signing you in...</h1>
+      <p>Loading your ConnectSphere profile.</p>
+    </div>
+  </section>
+</main>
+
+<style>
+  .callback-shell {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding: 20px;
+    background:
+      linear-gradient(135deg, rgba(22, 99, 255, 0.1), rgba(0, 167, 165, 0.1)),
+      #f5f8fc;
+  }
+
+  .callback-card {
+    width: min(100%, 460px);
+    padding: 34px;
+    border: 1px solid var(--cs-border);
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: var(--cs-shadow);
+    text-align: center;
+  }
+
+  .brand-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 26px;
+    font-weight: 900;
+  }
+
+  .brand-icon {
+    display: inline-grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--cs-primary);
+    color: #fff;
+    font-size: 0.88rem;
+  }
+
+  .callback-state {
+    display: grid;
+    justify-items: center;
+    gap: 12px;
+  }
+
+  .callback-state .bi {
+    font-size: 2.2rem;
+  }
+
+  .callback-state h1 {
+    margin: 8px 0 0;
+    font-size: 1.65rem;
+    font-weight: 900;
+  }
+
+  .callback-state p {
+    margin: 0;
+    color: var(--cs-muted);
+    line-height: 1.6;
+  }
+</style>

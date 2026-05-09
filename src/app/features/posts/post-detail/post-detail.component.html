@@ -1,0 +1,44 @@
+<main class="post-detail-page">
+  <div class="post-detail-shell">
+    <button class="back-link" type="button" (click)="goBack()">
+      <i class="bi bi-arrow-left" aria-hidden="true"></i>
+      <span>{{ backLabel }}</span>
+    </button>
+
+    <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="isLoading" class="loading-state" role="status">
+      <span class="spinner-border text-primary" aria-hidden="true"></span>
+      <strong>Loading post...</strong>
+    </div>
+
+    <section *ngIf="!isLoading && post" class="post-detail-content">
+      <app-post-card
+        [post]="post"
+        [currentUserId]="currentUserId"
+        [currentUser]="currentUser"
+      ></app-post-card>
+
+      <section class="related-section">
+        <div *ngIf="relatedPosts.length === 0" class="empty-state">
+          No related posts found yet.
+        </div>
+
+        <div class="related-list" *ngIf="relatedPosts.length > 0">
+          <article
+            *ngFor="let relatedPost of relatedPosts"
+            class="related-card"
+          >
+            <app-post-card
+              [post]="relatedPost"
+              [currentUserId]="currentUserId"
+              [currentUser]="currentUser"
+            ></app-post-card>
+          </article>
+        </div>
+      </section>
+    </section>
+  </div>
+</main>

@@ -1,0 +1,106 @@
+<main class="oauth-setup-shell">
+  <section class="setup-card" aria-labelledby="setup-title">
+    <div class="brand-mark" aria-hidden="true">CS</div>
+    <p class="eyebrow">ConnectSphere</p>
+    <h1 id="setup-title">Finish your profile</h1>
+    <p class="setup-copy">
+      Your provider sign-in worked. Choose a username, add a bio, and upload a profile picture before entering ConnectSphere.
+    </p>
+
+    <div class="account-preview">
+      <span>{{ fullName || 'OAuth account' }}</span>
+      <small>{{ email }}</small>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+      {{ errorMessage }}
+    </div>
+
+    <form [formGroup]="usernameForm" (ngSubmit)="submit()" novalidate>
+      <div class="mb-3">
+        <label class="form-label" for="username">Username</label>
+        <div class="input-group">
+          <span class="input-group-text" id="usernamePrefix">@</span>
+          <input
+            id="username"
+            class="form-control"
+            type="text"
+            formControlName="username"
+            aria-describedby="usernamePrefix usernameHelp"
+            placeholder="rd_sharma"
+            autocomplete="username"
+            [class.is-invalid]="username.invalid && username.touched"
+            [class.is-valid]="username.valid && usernameAvailable === true"
+          >
+        </div>
+
+        <div id="usernameHelp" class="form-text">
+          Use 3-40 letters, numbers, dots, underscores, or hyphens.
+        </div>
+
+        <div *ngIf="username.invalid && username.touched" class="invalid-feedback d-block">
+          Enter a valid username.
+        </div>
+
+        <div *ngIf="isCheckingUsername" class="checking-text">
+          <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+          Checking availability...
+        </div>
+
+        <div *ngIf="username.valid && usernameAvailable === true" class="valid-feedback d-block">
+          Username is available.
+        </div>
+
+        <div *ngIf="username.valid && usernameAvailable === false" class="invalid-feedback d-block">
+          Username is already taken.
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="bio">Bio</label>
+        <textarea
+          id="bio"
+          class="form-control"
+          rows="3"
+          formControlName="bio"
+          maxlength="300"
+          placeholder="Tell people a little about yourself"
+        ></textarea>
+        <div class="form-text">
+          Optional, up to 300 characters.
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label" for="profilePicture">Profile picture</label>
+        <input
+          id="profilePicture"
+          class="form-control"
+          type="file"
+          accept="image/*"
+          (change)="onFileSelected($event)"
+        >
+        <div class="form-text">
+          Optional image upload for your profile photo.
+        </div>
+        <div *ngIf="selectedFile" class="selected-file">
+          Selected: {{ selectedFile.name }}
+        </div>
+        <div *ngIf="fileError" class="invalid-feedback d-block">
+          {{ fileError }}
+        </div>
+      </div>
+
+      <button
+        class="btn btn-primary w-100"
+        type="submit"
+        [disabled]="isSubmitting || isCheckingUsername || usernameForm.invalid || usernameAvailable !== true"
+      >
+        <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+        {{ isSubmitting ? 'Creating account...' : 'Complete profile' }}
+      </button>
+    </form>
+
+    <a class="back-link" routerLink="/login">Back to login</a>
+  </section>
+</main>

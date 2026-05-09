@@ -1,0 +1,29 @@
+<main class="connections-page">
+  <button class="back-btn" type="button" (click)="goBack()" aria-label="Go back">
+    <i class="bi bi-arrow-left" aria-hidden="true"></i>
+  </button>
+
+  <header class="connections-header">
+    <p class="eyebrow">Connections</p>
+    <h1>Your network</h1>
+  </header>
+
+  <nav class="connection-tabs" aria-label="Connection lists">
+    <button
+      type="button"
+      [class.active]="activeTab === 'followers'"
+      (click)="selectTab('followers')"
+    >
+      Followers
+    </button>
+    <button
+      type="button"
+      [class.active]="activeTab === 'following'"
+      (click)="selectTab('following')"
+    >
+      Following
+    </button>
+  </nav>
+
+  <app-follow-list [userId]="currentUserId" [mode]="activeTab"></app-follow-list>
+</main>

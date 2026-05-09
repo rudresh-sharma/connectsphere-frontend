@@ -1,0 +1,18 @@
+<div class="follow-button-wrap">
+  <button
+    class="btn follow-btn"
+    type="button"
+    [class.btn-primary]="!isFollowing"
+    [class.btn-outline-primary]="isFollowing"
+    [disabled]="isSelf || isLoading || !currentUserId || !targetUserId"
+    (click)="toggleFollow()"
+    [attr.aria-label]="isFollowing ? 'Unfollow user' : 'Follow user'"
+  >
+    <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+    <i *ngIf="!isLoading" class="bi me-2" [class.bi-person-plus]="!isFollowing" [class.bi-person-check]="isFollowing" aria-hidden="true"></i>
+    {{ isLoading ? 'Working...' : isFollowing ? 'Following' : 'Follow' }}
+  </button>
+
+  <small *ngIf="isSelf" class="text-muted">This is you</small>
+  <div *ngIf="errorMessage" class="text-danger small mt-2" role="alert">{{ errorMessage }}</div>
+</div>

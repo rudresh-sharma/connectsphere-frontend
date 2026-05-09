@@ -1,0 +1,25 @@
+<div class="notifications-page">
+  <div class="page-header">
+    <h2>🔔 Notifications</h2>
+    <button class="btn btn-sm btn-primary" (click)="markAllRead()">Mark all as read</button>
+  </div>
+
+  <div *ngIf="loading" class="loading">Loading notifications...</div>
+
+  <div *ngIf="!loading && notifications.length === 0" class="empty">
+    <p>No notifications yet. When someone likes, comments, or follows you, it'll show up here!</p>
+  </div>
+
+  <div class="notif-list" *ngIf="!loading && notifications.length > 0">
+    <div *ngFor="let n of notifications" class="notif-card" [class.unread]="!n.read" (click)="markAsRead(n)">
+      <span class="icon">{{ getIcon(n.type) }}</span>
+      <div class="content">
+        <p class="message">{{ n.message }}</p>
+        <small class="timestamp">{{ n.createdAt | date:'medium' }}</small>
+      </div>
+      <button class="delete-btn" (click)="deleteNotification(n.notificationId); $event.stopPropagation()" title="Delete">
+        <i class="bi bi-trash"></i>
+      </button>
+    </div>
+  </div>
+</div>
