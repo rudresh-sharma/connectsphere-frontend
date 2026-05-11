@@ -29,15 +29,15 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const authService = inject(AuthService);
   const token = authService.getToken();
   const isBackendApiRequest = API_BASE_URLS.some((baseUrl) => request.url.startsWith(baseUrl));
-  const isPublicAuthRequest = PUBLIC_AUTH_PATHS.some((path) => request.url.includes(path));
   const isRefreshRequest = request.url.includes('/auth/refresh');
+  const isPublicAuthRequest = PUBLIC_AUTH_PATHS.some((path) => request.url.includes(path));
+
+  if (isRefreshRequest) {
+    return token ? next(withAuthorization(request, token)) : next(request);
+  }
 
   if (!token || !isBackendApiRequest || isPublicAuthRequest) {
     return next(request);
-  }
-
-  if (isRefreshRequest) {
-    return next(withAuthorization(request, token));
   }
 
   return authService.ensureValidToken().pipe(

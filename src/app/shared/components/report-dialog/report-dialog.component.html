@@ -1,0 +1,40 @@
+<div *ngIf="open" class="report-dialog-backdrop" role="presentation" (click)="close()">
+  <section
+    class="report-dialog"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="title"
+    (click)="$event.stopPropagation()"
+  >
+    <button class="report-dialog-close" type="button" (click)="close()" [disabled]="loading" aria-label="Close report dialog">
+      <i class="bi bi-x-lg" aria-hidden="true"></i>
+    </button>
+
+    <div class="report-dialog-header">
+      <p class="report-dialog-eyebrow">Safety</p>
+      <h3>{{ title }}</h3>
+      <p>Tell us what feels wrong about {{ subjectLabel }}. Your report goes to the moderation queue for review.</p>
+    </div>
+
+    <label class="report-dialog-label" for="reportReason">Reason</label>
+    <textarea
+      id="reportReason"
+      class="report-dialog-input"
+      rows="4"
+      [(ngModel)]="reason"
+      maxlength="500"
+      placeholder="Describe the issue"
+    ></textarea>
+
+    <div *ngIf="errorMessage" class="report-dialog-error" role="alert">
+      {{ errorMessage }}
+    </div>
+
+    <div class="report-dialog-actions">
+      <button class="btn btn-outline-secondary" type="button" (click)="close()" [disabled]="loading">Cancel</button>
+      <button class="btn btn-danger" type="button" (click)="submit()" [disabled]="loading || !reason.trim()">
+        {{ loading ? 'Sending...' : 'Submit report' }}
+      </button>
+    </div>
+  </section>
+</div>

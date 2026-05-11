@@ -89,6 +89,17 @@
   font-weight: 700;
 }
 
+.comment-success {
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border: 1px solid #b7ebc6;
+  border-radius: 12px;
+  background: #effdf3;
+  color: #027a48;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
 .comment-feed {
   display: block;
   min-height: 0;

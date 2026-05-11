@@ -16,7 +16,7 @@
           *ngIf="hasProfilePicture; else mobileProfileInitials"
           class="profile-mobile-avatar"
           [src]="user?.profilePicUrl"
-          [alt]="user?.fullName || user?.username || 'Profile picture'"
+          [alt]="user?.fullName || user?.username || 'Profile'"
           (error)="onProfileImageError()"
         >
         <ng-template #mobileProfileInitials>
@@ -80,7 +80,7 @@
         *ngIf="hasProfilePicture; else profileInitials"
         class="profile-avatar"
         [src]="user?.profilePicUrl"
-        [alt]="user?.fullName || user?.username || 'Profile picture'"
+        [alt]="user?.fullName || user?.username || 'Profile'"
         (error)="onProfileImageError()"
       >
       <ng-template #profileInitials>
@@ -187,11 +187,10 @@
       </div>
 
       <div *ngIf="selectedProfileTab !== 'details' && visiblePosts.length > 0" class="profile-post-grid">
-        <article
+        <button
           *ngFor="let post of visiblePosts; let postIndex = index"
           class="profile-post-tile"
-          tabindex="0"
-          role="button"
+          type="button"
           aria-label="Open post"
           (click)="openPostViewer(postIndex)"
           (keydown.enter)="openPostViewer(postIndex)"
@@ -217,7 +216,7 @@
               </p>
             </div>
           </ng-template>
-        </article>
+        </button>
       </div>
     </div>
   </section>
@@ -225,13 +224,14 @@
   <div
     *ngIf="selectedPost as activePost"
     class="profile-post-viewer-backdrop"
-    role="presentation"
+    tabindex="0"
     (click)="closePostViewer()"
+    (keydown.enter)="closePostViewer()"
+    (keydown.space)="closePostViewer(); $event.preventDefault()"
   >
-    <section
+    <dialog
       class="profile-post-viewer"
-      role="dialog"
-      aria-modal="true"
+      open
       aria-label="Profile post"
       (click)="$event.stopPropagation()"
       (wheel)="onPostViewerWheel($event)"
@@ -269,19 +269,20 @@
       >
         <i class="bi bi-chevron-right" aria-hidden="true"></i>
       </button>
-    </section>
+    </dialog>
   </div>
 
   <div
     *ngIf="isEditingProfile"
     class="profile-edit-modal-backdrop"
-    role="presentation"
+    tabindex="0"
     (click)="toggleEditProfile()"
+    (keydown.enter)="toggleEditProfile()"
+    (keydown.space)="toggleEditProfile(); $event.preventDefault()"
   >
-    <section
+    <dialog
       class="profile-edit-modal profile-card"
-      role="dialog"
-      aria-modal="true"
+      open
       aria-label="Edit profile"
       (click)="$event.stopPropagation()"
     >
@@ -372,9 +373,9 @@
           {{ errorMessage }}
         </div>
 
-        <div *ngIf="successMessage" class="alert alert-success" role="status">
+        <output *ngIf="successMessage" class="alert alert-success">
           {{ successMessage }}
-        </div>
+        </output>
 
         <div class="action-row">
           <button class="btn btn-primary" type="submit" [disabled]="isSavingProfile || isCheckingUsername || usernameAvailable !== true">
@@ -386,19 +387,20 @@
           </button>
         </div>
       </form>
-    </section>
+    </dialog>
   </div>
 
   <div
     *ngIf="showConnections"
     class="connections-modal-backdrop"
-    role="presentation"
+    tabindex="0"
     (click)="closeConnections()"
+    (keydown.enter)="closeConnections()"
+    (keydown.space)="closeConnections(); $event.preventDefault()"
   >
-    <section
+    <dialog
       class="connections-modal"
-      role="dialog"
-      aria-modal="true"
+      open
       [attr.aria-label]="selectedFollowTab === 'followers' ? 'Followers' : 'Following'"
       (click)="$event.stopPropagation()"
     >
@@ -415,19 +417,20 @@
       <div class="connections-modal-body">
         <app-follow-list [userId]="profileUserId" [mode]="selectedFollowTab"></app-follow-list>
       </div>
-    </section>
+    </dialog>
   </div>
 
   <div
     *ngIf="showSettings"
     class="settings-modal-backdrop"
-    role="presentation"
+    tabindex="0"
     (click)="closeSettings()"
+    (keydown.enter)="closeSettings()"
+    (keydown.space)="closeSettings(); $event.preventDefault()"
   >
-    <section
+    <dialog
       class="settings-modal"
-      role="dialog"
-      aria-modal="true"
+      open
       aria-label="Settings"
       (click)="$event.stopPropagation()"
     >
@@ -476,6 +479,6 @@
           <span *ngIf="isDeletingAccount" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
         </button>
       </div>
-    </section>
+    </dialog>
   </div>
 </main>

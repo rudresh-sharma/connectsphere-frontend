@@ -16,6 +16,7 @@ import {
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { ReportDialogComponent } from '../../../shared/components/report-dialog/report-dialog.component';
 import { SearchService } from '../../search/search.service';
 import { CommentSectionComponent } from '../../comments/comment-section/comment-section.component';
 import { ReactionBarComponent } from '../../likes/reaction-bar/reaction-bar.component';
@@ -54,7 +55,7 @@ interface RazorpayPaymentResponse {
 @Component({
   selector: 'app-post-card',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, CommentSectionComponent, ReactionBarComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, CommentSectionComponent, ReactionBarComponent, ReportDialogComponent],
   templateUrl: './post-card.component.html',
   styleUrl: './post-card.component.css'
 })
@@ -83,6 +84,10 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
   bookmarkPending = false;
   sharePending = false;
   promotePending = false;
+  reportPending = false;
+  showReportDialog = false;
+  reportErrorMessage = '';
+  reportSuccessMessage = '';
   paymentMessage = '';
   contentExpanded = false;
   private authorLoadPostId = 0;
@@ -115,7 +120,7 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
       this.contentExpanded = false;
       this.loadBookmarkStatus();
       this.loadMissingAuthorProfile();
-      window.setTimeout(() => this.setupAutoplayObserver(), 0);
+      globalThis.setTimeout(() => this.setupAutoplayObserver(), 0);
     }
   }
 
@@ -246,6 +251,10 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
     return this.post.promotionStatus === 'PENDING' || this.post.promotionStatus === 'PENDING_APPROVAL';
   }
 
+  get canReport(): boolean {
+    return Boolean(this.currentUserId && this.post.authorId !== this.currentUserId && this.postId && !this.reportPending);
+  }
+
   private get currentAuthor(): User | null {
     return this.canModify ? this.currentUser : null;
   }
@@ -267,7 +276,7 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   getContentSegments(content: string): string[] {
-    return content.split(/(#[a-zA-Z0-9_]+|@[a-zA-Z0-9._-]+)/g).filter((segment) => segment.length > 0);
+    return content.split(/(#[\w]+|@[\w.-]+)/g).filter((segment) => segment.length > 0);
   }
 
   toggleContent(): void {
@@ -275,11 +284,11 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   isHashtagSegment(segment: string): boolean {
-    return /^#[a-zA-Z0-9_]+$/.test(segment);
+    return /^#\w+$/.test(segment);
   }
 
   isMentionSegment(segment: string): boolean {
-    return /^@[a-zA-Z0-9._-]+$/.test(segment);
+    return /^@[\w.-]+$/.test(segment);
   }
 
   onHashtagClick(hashtag: string, event: Event): void {
@@ -366,7 +375,7 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   closeCommentsModal(): void {
     this.showCommentsModal = false;
-    window.setTimeout(() => this.playMostVisibleFeedVideo(), 0);
+    globalThis.setTimeout(() => this.playMostVisibleFeedVideo(), 0);
   }
 
   onCommentCountChange(count: number): void {
@@ -422,7 +431,7 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
           return;
         }
 
-        const Razorpay = window.Razorpay;
+        const Razorpay = globalThis.window?.Razorpay;
         if (!Razorpay) {
           this.promotePending = false;
           this.paymentMessage = 'Could not load Razorpay checkout.';
@@ -507,7 +516,7 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   private loadRazorpayCheckout(): Promise<void> {
-    if (window.Razorpay) {
+    if (globalThis.window?.Razorpay) {
       return Promise.resolve();
     }
 
@@ -515,7 +524,7 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
       const existingScript = document.querySelector<HTMLScriptElement>('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
       if (existingScript) {
         existingScript.addEventListener('load', () => resolve(), { once: true });
-        existingScript.addEventListener('error', () => reject(), { once: true });
+        existingScript.addEventListener('error', () => reject(new Error('Failed to load Razorpay checkout script.')), { once: true });
         return;
       }
 
@@ -523,8 +532,44 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
       script.async = true;
       script.onload = () => resolve();
-      script.onerror = () => reject();
+      script.onerror = () => reject(new Error('Failed to load Razorpay checkout script.'));
       document.body.appendChild(script);
+    });
+  }
+
+  reportPost(): void {
+    if (!this.canReport) {
+      return;
+    }
+
+    this.reportErrorMessage = '';
+    this.reportSuccessMessage = '';
+    this.showReportDialog = true;
+  }
+
+  closeReportDialog(): void {
+    if (this.reportPending) {
+      return;
+    }
+
+    this.showReportDialog = false;
+    this.reportErrorMessage = '';
+  }
+
+  submitPostReport(reason: string): void {
+    this.reportPending = true;
+    this.menuOpen = false;
+    this.postService.reportPost(this.postId, this.currentUserId, reason).subscribe({
+      next: () => {
+        this.reportPending = false;
+        this.showReportDialog = false;
+        this.reportErrorMessage = '';
+        this.reportSuccessMessage = 'Post reported. Our admins can review it now.';
+      },
+      error: (error: Error) => {
+        this.reportPending = false;
+        this.reportErrorMessage = error.message || 'Could not report this post.';
+      }
     });
   }
 
@@ -573,7 +618,7 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   private hasText(value: string | null | undefined): boolean {
-    return Boolean(value && value.trim());
+    return !!value?.trim();
   }
 
   private setupAutoplayObserver(): void {
@@ -646,34 +691,31 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
     video.muted = !PostCardComponent.hasUnlockedAudio;
     video.volume = 1;
 
-    const playAttempt = video.play();
-    if (playAttempt) {
-      playAttempt.catch(() => {
-        if (PostCardComponent.activeFeedVideo === video) {
-          PostCardComponent.activeFeedVideo = null;
-        }
-      });
-    }
+    void video.play().catch(() => {
+      if (PostCardComponent.activeFeedVideo === video) {
+        PostCardComponent.activeFeedVideo = null;
+      }
+    });
   }
 
   private bindAudioUnlockListeners(): void {
-    if (PostCardComponent.hasUnlockedAudio || typeof window === 'undefined') {
+    if (PostCardComponent.hasUnlockedAudio || !globalThis.window) {
       return;
     }
 
     const unlockAudio = () => {
       PostCardComponent.hasUnlockedAudio = true;
-      window.removeEventListener('pointerdown', unlockAudio);
-      window.removeEventListener('touchstart', unlockAudio);
-      window.removeEventListener('keydown', unlockAudio);
-      window.removeEventListener('scroll', unlockAudio, true);
+      globalThis.removeEventListener('pointerdown', unlockAudio);
+      globalThis.removeEventListener('touchstart', unlockAudio);
+      globalThis.removeEventListener('keydown', unlockAudio);
+      globalThis.removeEventListener('scroll', unlockAudio, true);
       this.playMostVisibleFeedVideo();
     };
 
-    window.addEventListener('pointerdown', unlockAudio, { once: true });
-    window.addEventListener('touchstart', unlockAudio, { once: true });
-    window.addEventListener('keydown', unlockAudio, { once: true });
-    window.addEventListener('scroll', unlockAudio, { once: true, capture: true });
+    globalThis.addEventListener('pointerdown', unlockAudio, { once: true });
+    globalThis.addEventListener('touchstart', unlockAudio, { once: true });
+    globalThis.addEventListener('keydown', unlockAudio, { once: true });
+    globalThis.addEventListener('scroll', unlockAudio, { once: true, capture: true });
   }
 
   private pauseFeedVideos(reset = false): void {
@@ -692,8 +734,8 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   private getVisibleRatio(element: HTMLElement): number {
     const rect = element.getBoundingClientRect();
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+    const viewportHeight = globalThis.innerHeight || document.documentElement.clientHeight;
+    const viewportWidth = globalThis.innerWidth || document.documentElement.clientWidth;
     const visibleTop = Math.max(rect.top, 0);
     const visibleBottom = Math.min(rect.bottom, viewportHeight);
     const visibleLeft = Math.max(rect.left, 0);
@@ -704,7 +746,7 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   private async sharePostLink(): Promise<void> {
-    const url = `${window.location.origin}/posts/${this.postId}`;
+    const url = `${globalThis.location.origin}/posts/${this.postId}`;
     const text = `${this.authorName}: ${this.post.content}`;
 
     if (navigator.share) {

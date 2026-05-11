@@ -12,6 +12,12 @@ export class CommentService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.commentApiUrl}/comments`;
 
+  reportComment(commentId: number, reporterId: number, reason: string): Observable<void> {
+    return this.http
+      .post<void>(`${this.baseUrl}/${commentId}/reports`, { reporterId, reason })
+      .pipe(catchError((error) => this.handleError(error)));
+  }
+
   addComment(request: CreateCommentRequest): Observable<Comment> {
     return this.http.post<Comment>(this.baseUrl, request).pipe(catchError((error) => this.handleError(error)));
   }

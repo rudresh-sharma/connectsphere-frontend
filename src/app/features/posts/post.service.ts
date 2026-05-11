@@ -22,6 +22,13 @@ export class PostService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.postApiUrl}/posts`;
 
+  reportPost(id: number, reporterId: number, reason: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${id}/reports`, {
+      reporterId,
+      reason
+    });
+  }
+
   createPost(request: CreatePostRequest): Observable<Post> {
     return this.http.post<Post>(this.baseUrl, request);
   }

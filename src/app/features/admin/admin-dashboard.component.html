@@ -233,16 +233,91 @@
         </div>
       </section>
 
-      <section *ngIf="activeAdminTab === 'reports'" class="admin-tab-panel reports-grid">
-        <div class="admin-subsection">
+      <section *ngIf="activeAdminTab === 'reports'" class="admin-tab-panel">
+        <nav class="report-tabs" aria-label="Report categories">
+          <button
+            type="button"
+            class="report-tab"
+            [class.active]="activeReportTab === 'posts'"
+            (click)="selectReportTab('posts')"
+          >
+            Post reports <span>{{ postReports.length }}</span>
+          </button>
+          <button
+            type="button"
+            class="report-tab"
+            [class.active]="activeReportTab === 'comments'"
+            (click)="selectReportTab('comments')"
+          >
+            Comment reports <span>{{ commentReports.length }}</span>
+          </button>
+        </nav>
+
+        <div class="admin-subsection" *ngIf="activeReportTab === 'posts'">
           <h3>Post reports</h3>
           <div class="admin-list">
             <div class="admin-row" *ngFor="let report of postReports">
-              <div>
-                <strong>Post #{{ report.postId }}</strong>
-                <span>{{ report.reason }}</span>
+              <div class="report-content">
+                <ng-container *ngIf="getReportedPost(report) as reportedPost; else missingPost">
+                  <div class="reported-post-summary">
+                    <a
+                      class="reported-post-avatar-link"
+                      [routerLink]="['/profile']"
+                      [queryParams]="{ userId: reportedPost.authorId }"
+                      [attr.aria-label]="'Open ' + getPostAuthorDisplayName(reportedPost) + ' profile'"
+                    >
+                      <ng-container *ngIf="reportedPost.authorProfilePicUrl || reportedPost.author?.profilePicUrl; else reportedPostInitial">
+                        <img
+                          class="reported-post-avatar"
+                          [src]="reportedPost.authorProfilePicUrl || reportedPost.author?.profilePicUrl || ''"
+                          [alt]="getPostAuthorDisplayName(reportedPost)"
+                        >
+                      </ng-container>
+                      <ng-template #reportedPostInitial>
+                        <span class="reported-post-avatar reported-post-avatar-fallback" aria-hidden="true">
+                          {{ getPostAuthorInitial(reportedPost) }}
+                        </span>
+                      </ng-template>
+                    </a>
+                    <div class="reported-post-copy">
+                      <a
+                        class="reported-post-name"
+                        [routerLink]="['/profile']"
+                        [queryParams]="{ userId: reportedPost.authorId }"
+                      >
+                        {{ getPostAuthorDisplayName(reportedPost) }}
+                      </a>
+                      <a
+                        class="reported-post-username"
+                        [routerLink]="['/profile']"
+                        [queryParams]="{ userId: reportedPost.authorId }"
+                      >
+                        @{{ getPostAuthorUsername(reportedPost) }}
+                      </a>
+                    </div>
+                  </div>
+                </ng-container>
+                <ng-template #missingPost>
+                  <div>
+                    <strong>Post #{{ report.postId }}</strong>
+                    <span>This post could not be loaded. It may already be removed.</span>
+                  </div>
+                </ng-template>
+                <div class="report-meta">
+                  <strong>Report reason</strong>
+                  <span>{{ report.reason }}</span>
+                  <small *ngIf="report.reporterUsername">Reported by @{{ report.reporterUsername }}</small>
+                </div>
               </div>
               <div class="row-actions">
+                <button
+                  *ngIf="getReportedPost(report) as reportedPost"
+                  class="btn btn-sm btn-outline-secondary"
+                  type="button"
+                  (click)="openReportedPost(reportedPost)"
+                >
+                  View post
+                </button>
                 <button class="btn btn-sm btn-outline-primary" type="button" (click)="resolvePostReport(report, false)">Resolve</button>
                 <button class="btn btn-sm btn-outline-danger" type="button" (click)="resolvePostReport(report, true)">Remove post</button>
               </div>
@@ -250,15 +325,42 @@
           </div>
         </div>
 
-        <div class="admin-subsection">
+        <div class="admin-subsection" *ngIf="activeReportTab === 'comments'">
           <h3>Comment reports</h3>
           <div class="admin-list">
             <div class="admin-row" *ngFor="let report of commentReports">
-              <div>
-                <strong>Comment #{{ report.commentId }}</strong>
-                <span>{{ report.reason }}</span>
+              <div class="report-content">
+                <div class="reported-comment-card" *ngIf="getReportedComment(report) as reportedComment; else missingComment">
+                  <a
+                    class="reported-comment-author"
+                    [routerLink]="['/profile']"
+                    [queryParams]="{ userId: reportedComment.authorId }"
+                  >
+                    @{{ reportedComment.authorUsername }}
+                  </a>
+                  <span>{{ reportedComment.content }}</span>
+                </div>
+                <ng-template #missingComment>
+                  <div>
+                    <strong>Comment #{{ report.commentId }}</strong>
+                    <span>This comment could not be loaded. It may already be removed.</span>
+                  </div>
+                </ng-template>
+                <div class="report-meta">
+                  <strong>Report reason</strong>
+                  <span>{{ report.reason }}</span>
+                  <small *ngIf="report.reporterUsername">Reported by @{{ report.reporterUsername }}</small>
+                </div>
               </div>
               <div class="row-actions">
+                <button
+                  *ngIf="getReportedCommentPost(report) as reportedPost"
+                  class="btn btn-sm btn-outline-secondary"
+                  type="button"
+                  (click)="openReportedPost(reportedPost)"
+                >
+                  View post
+                </button>
                 <button class="btn btn-sm btn-outline-primary" type="button" (click)="resolveCommentReport(report, false)">Resolve</button>
                 <button class="btn btn-sm btn-outline-danger" type="button" (click)="resolveCommentReport(report, true)">Remove comment</button>
               </div>
@@ -307,6 +409,40 @@
         [currentUserName]="currentUser?.fullName || currentUser?.username || 'Admin'"
         (commentCountChange)="onAdminCommentCountChange($event)"
       ></app-comment-section>
+    </section>
+  </div>
+
+  <div
+    *ngIf="selectedReportedPost as post"
+    class="admin-comments-backdrop"
+    role="presentation"
+    (click)="closeReportedPost()"
+  >
+    <section
+      class="admin-reported-post-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Reported post"
+      (click)="$event.stopPropagation()"
+    >
+      <button class="admin-comments-close" type="button" (click)="closeReportedPost()" aria-label="Close reported post">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+
+      <div class="admin-reported-post-header">
+        <p class="eyebrow">Reported Post</p>
+        <h3>{{ getPostAuthorDisplayName(post) }}</h3>
+        <span>@{{ getPostAuthorUsername(post) }}</span>
+      </div>
+
+      <div class="admin-reported-post-body">
+        <app-post-card
+          class="admin-post-surface"
+          [post]="post"
+          [currentUserId]="currentUserId"
+          [currentUser]="currentUser"
+        ></app-post-card>
+      </div>
     </section>
   </div>
 </main>

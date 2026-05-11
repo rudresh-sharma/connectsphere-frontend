@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, catchError, finalize, map, of, shareReplay, tap, throwError } from 'rxjs';
 import {
   ApiError,
@@ -75,11 +75,11 @@ export class AuthService {
   }
 
   startGoogleLogin(): void {
-    window.location.href = this.googleOAuthUrl;
+    globalThis.location.href = this.googleOAuthUrl;
   }
 
   startGithubLogin(): void {
-    window.location.href = this.githubOAuthUrl;
+    globalThis.location.href = this.githubOAuthUrl;
   }
 
   saveToken(token: string, expiresInSeconds?: number): void {
@@ -138,7 +138,7 @@ export class AuthService {
     return this.getProfile().pipe(
       catchError((error: Error & { status?: number }) => {
         const currentUser = this.getCurrentUser();
-        if (currentUser && error.status && error.status >= 500) {
+        if (currentUser && (error.status ?? 0) >= 500) {
           return of(currentUser);
         }
         return throwError(() => error);
@@ -238,8 +238,11 @@ export class AuthService {
       return of(token);
     }
 
-    if (!this.refreshInFlight$) {
-      this.refreshInFlight$ = this.http.post<AuthResponse>(`${this.apiUrl}/refresh`, {}).pipe(
+    this.refreshInFlight$ ??= this.http.post<AuthResponse>(`${this.apiUrl}/refresh`, {}, {
+        headers: new HttpHeaders({
+          Authorization: `Bearer ${token}`
+        })
+      }).pipe(
         tap((response) => this.persistSession(response)),
         map((response) => response.accessToken),
         catchError((error) => this.handleError(error)),
@@ -248,7 +251,6 @@ export class AuthService {
         }),
         shareReplay(1)
       );
-    }
 
     return this.refreshInFlight$;
   }
@@ -300,11 +302,14 @@ export class AuthService {
     const username = this.toStringClaim(claims['sub']) || this.toStringClaim(claims['email']) || 'user';
     const userId = this.toNumberClaim(claims['userId']);
     const email = this.toStringClaim(claims['email']) || '';
+    const normalizedPreviousEmail = previousUser?.email?.trim().toLowerCase();
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPreviousUsername = previousUser?.username?.trim().toLowerCase();
+    const normalizedUsername = username.trim().toLowerCase();
     const canReusePreviousUser = Boolean(
-      previousUser &&
-        ((userId && previousUser.userId === userId) ||
-          (email && previousUser.email?.trim().toLowerCase() === email.trim().toLowerCase()) ||
-          (username && previousUser.username?.trim().toLowerCase() === username.trim().toLowerCase()))
+      (userId && previousUser?.userId === userId) ||
+      (email && normalizedPreviousEmail === normalizedEmail) ||
+      (username && normalizedPreviousUsername === normalizedUsername)
     );
 
     return {
@@ -330,7 +335,7 @@ export class AuthService {
     }
 
     try {
-      const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const normalized = payload.replaceAll(/-/g, '+').replaceAll(/_/g, '/');
       const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), '=');
       return JSON.parse(atob(padded)) as Record<string, unknown>;
     } catch {
@@ -442,7 +447,7 @@ export class AuthService {
 
   private humanizeField(field: string): string {
     return field
-      .replace(/([A-Z])/g, ' $1')
+      .replaceAll(/([A-Z])/g, ' $1')
       .replace(/^./, (letter) => letter.toUpperCase());
   }
 }

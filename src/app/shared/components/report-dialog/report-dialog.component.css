@@ -1,0 +1,130 @@
+.report-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.68);
+  backdrop-filter: blur(10px);
+}
+
+.report-dialog {
+  position: relative;
+  width: min(100%, 520px);
+  padding: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 28%),
+    linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  box-shadow: 0 32px 80px rgba(15, 23, 42, 0.26);
+}
+
+.report-dialog-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #667085;
+}
+
+.report-dialog-close:hover,
+.report-dialog-close:focus-visible {
+  background: #eef4ff;
+  color: #111827;
+  outline: none;
+}
+
+.report-dialog-header h3 {
+  margin: 8px 0 0;
+  color: #101828;
+  font-size: 1.55rem;
+  font-weight: 900;
+}
+
+.report-dialog-header p {
+  margin: 10px 0 0;
+  color: #475467;
+  line-height: 1.7;
+}
+
+.report-dialog-eyebrow {
+  margin: 0;
+  color: #dc2626;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.report-dialog-label {
+  display: block;
+  margin-top: 18px;
+  margin-bottom: 8px;
+  color: #344054;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.report-dialog-input {
+  width: 100%;
+  min-height: 120px;
+  padding: 14px 16px;
+  border: 1px solid #d7dfeb;
+  border-radius: 18px;
+  background: #fff;
+  color: #101828;
+  font: inherit;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.report-dialog-input:focus {
+  outline: none;
+  border-color: var(--cs-primary, #1663ff);
+  box-shadow: 0 0 0 0.2rem rgba(22, 99, 255, 0.12);
+}
+
+.report-dialog-error {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  background: #fff1f2;
+  color: #c03221;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.report-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+@media (max-width: 640px) {
+  .report-dialog-backdrop {
+    padding: 14px;
+  }
+
+  .report-dialog {
+    padding: 22px 18px 18px;
+    border-radius: 22px;
+  }
+
+  .report-dialog-actions {
+    flex-direction: column-reverse;
+  }
+
+  .report-dialog-actions .btn {
+    width: 100%;
+  }
+}

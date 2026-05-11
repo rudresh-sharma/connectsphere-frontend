@@ -156,6 +156,16 @@
       <span>{{ shareCount }}</span>
     </button>
     <button
+      *ngIf="canReport"
+      class="btn btn-light action-btn"
+      type="button"
+      (click)="reportPost()"
+      [disabled]="reportPending"
+    >
+      <i class="bi bi-flag" aria-hidden="true"></i>
+      <span>{{ reportPending ? 'Reporting...' : 'Report' }}</span>
+    </button>
+    <button
       *ngIf="canModify"
       class="btn btn-light action-btn action-btn-promote"
       type="button"
@@ -202,7 +212,19 @@
   </div>
 
   <p class="post-date">{{ createdLabel }}</p>
+  <p *ngIf="reportSuccessMessage" class="report-status-message">{{ reportSuccessMessage }}</p>
   <p *ngIf="paymentMessage" class="payment-message" [class.success]="isPromoted">{{ paymentMessage }}</p>
+
+  <app-report-dialog
+    [open]="showReportDialog"
+    title="Report post"
+    subjectLabel="this post"
+    [loading]="reportPending"
+    [errorMessage]="reportErrorMessage"
+    defaultReason="Spam or inappropriate content"
+    (closed)="closeReportDialog()"
+    (submitted)="submitPostReport($event)"
+  ></app-report-dialog>
 
   <div
     *ngIf="showCommentsModal"

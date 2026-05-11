@@ -24,6 +24,9 @@
     <div *ngIf="errorMessage" class="comment-error" role="alert">
       {{ errorMessage }}
     </div>
+    <div *ngIf="reportSuccessMessage" class="comment-success" role="status">
+      {{ reportSuccessMessage }}
+    </div>
 
     <div *ngIf="isLoading" class="comment-loading" role="status">
       <span class="spinner-border spinner-border-sm text-primary" aria-hidden="true"></span>
@@ -134,6 +137,16 @@
                   (click)="deleteComment(comment)"
                 >
                   <i class="bi bi-trash" aria-hidden="true"></i> Delete
+                </button>
+                <button
+                  *ngIf="canReport(comment)"
+                  class="comment-action-btn comment-action-danger"
+                  type="button"
+                  (click)="reportComment(comment)"
+                  [disabled]="reportingCommentId === comment.commentId"
+                >
+                  <i class="bi bi-flag" aria-hidden="true"></i>
+                  {{ reportingCommentId === comment.commentId ? 'Reporting...' : 'Report' }}
                 </button>
               </div>
 
@@ -271,6 +284,16 @@
                         >
                           <i class="bi bi-trash" aria-hidden="true"></i> Delete
                         </button>
+                        <button
+                          *ngIf="canReport(reply)"
+                          class="comment-action-btn comment-action-danger"
+                          type="button"
+                          (click)="reportComment(reply)"
+                          [disabled]="reportingCommentId === reply.commentId"
+                        >
+                          <i class="bi bi-flag" aria-hidden="true"></i>
+                          {{ reportingCommentId === reply.commentId ? 'Reporting...' : 'Report' }}
+                        </button>
                       </div>
                     </div>
 
@@ -306,6 +329,17 @@
   </div>
 
   <ng-container *ngIf="composerPosition === 'bottom'" [ngTemplateOutlet]="commentComposer"></ng-container>
+
+  <app-report-dialog
+    [open]="!!reportTarget"
+    title="Report comment"
+    subjectLabel="this comment"
+    [loading]="reportingCommentId !== null"
+    [errorMessage]="errorMessage"
+    defaultReason="Abusive or inappropriate content"
+    (closed)="closeReportDialog()"
+    (submitted)="submitCommentReport($event)"
+  ></app-report-dialog>
 
   <ng-template #commentComposer>
     <form *ngIf="canInteract; else guestCommentPrompt" class="add-comment-form" (ngSubmit)="addComment()">

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { User } from '../../shared/models/auth.models';
@@ -12,11 +12,12 @@ import { Comment } from '../comments/comment.model';
 import { CommentSectionComponent } from '../comments/comment-section/comment-section.component';
 
 type AdminDataTab = 'users' | 'posts' | 'comments' | 'reports' | 'hashtags';
+type ReportTab = 'posts' | 'comments';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, CommentSectionComponent, PostCardComponent],
+  imports: [CommonModule, FormsModule, RouterLink, CommentSectionComponent, PostCardComponent],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.css'
 })
@@ -46,8 +47,10 @@ export class AdminDashboardComponent implements OnInit {
   broadcastSuccessMessage = '';
   isSendingBroadcast = false;
   activeAdminTab: AdminDataTab = 'users';
+  activeReportTab: ReportTab = 'posts';
   adminView: 'overview' | 'notifications' | 'data' = 'overview';
   selectedCommentPost: Post | null = null;
+  selectedReportedPost: Post | null = null;
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
@@ -74,6 +77,10 @@ export class AdminDashboardComponent implements OnInit {
     this.activeAdminTab = tab;
     this.selectedCommentPost = null;
     setTimeout(() => this.adminDataCard?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }
+
+  selectReportTab(tab: ReportTab): void {
+    this.activeReportTab = tab;
   }
 
   get suggestedBroadcastUsers(): User[] {
@@ -190,6 +197,18 @@ export class AdminDashboardComponent implements OnInit {
     this.selectedCommentPost = null;
   }
 
+  openReportedPost(post: Post): void {
+    if (!this.getPostId(post)) {
+      return;
+    }
+
+    this.selectedReportedPost = post;
+  }
+
+  closeReportedPost(): void {
+    this.selectedReportedPost = null;
+  }
+
   onAdminCommentCountChange(count: number): void {
     if (!this.selectedCommentPost) {
       return;
@@ -264,6 +283,35 @@ export class AdminDashboardComponent implements OnInit {
       next: () => this.loadAdminData(),
       error: (error: Error) => this.errorMessage = error.message
     });
+  }
+
+  getReportedPost(report: PostReport): Post | null {
+    return this.posts.find((post) => this.getPostId(post) === report.postId) ?? null;
+  }
+
+  getReportedComment(report: CommentReport): Comment | null {
+    return this.comments.find((comment) => comment.commentId === report.commentId) ?? null;
+  }
+
+  getReportedCommentPost(report: CommentReport): Post | null {
+    const comment = this.getReportedComment(report);
+    if (!comment) {
+      return null;
+    }
+
+    return this.posts.find((post) => this.getPostId(post) === comment.postId) ?? null;
+  }
+
+  getPostAuthorDisplayName(post: Post): string {
+    return post.authorFullName || post.author?.fullName || post.authorUsername || post.author?.username || `User #${post.authorId}`;
+  }
+
+  getPostAuthorUsername(post: Post): string {
+    return post.authorUsername || post.author?.username || `user-${post.authorId}`;
+  }
+
+  getPostAuthorInitial(post: Post): string {
+    return this.getPostAuthorDisplayName(post).trim().charAt(0).toUpperCase() || 'U';
   }
 
   sendBroadcast(): void {

@@ -20,14 +20,14 @@ export class NavigationHistoryService {
           return;
         }
 
-        if (this.history[this.history.length - 1] !== url) {
+        if (this.history.at(-1) !== url) {
           this.history.push(url);
         }
       });
   }
 
   getPreviousUrl(): string | null {
-    return this.history.length > 1 ? this.history[this.history.length - 2] : null;
+    return this.history.length > 1 ? (this.history.at(-2) ?? null) : null;
   }
 
   isPreviousRouteSearch(): boolean {
@@ -37,7 +37,7 @@ export class NavigationHistoryService {
   goBack(fallbackUrl: string): Promise<boolean> {
     if (this.history.length > 1) {
       this.history.pop();
-      const targetUrl = this.history[this.history.length - 1];
+      const targetUrl = this.history.at(-1) ?? fallbackUrl;
       this.suppressedUrl = targetUrl;
       return this.router.navigateByUrl(targetUrl, { replaceUrl: true });
     }

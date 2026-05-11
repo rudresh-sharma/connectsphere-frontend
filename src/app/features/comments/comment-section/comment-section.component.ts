@@ -3,6 +3,7 @@ import { Component, EventEmitter, Input, OnInit, OnChanges, OnDestroy, Output, S
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
+import { ReportDialogComponent } from '../../../shared/components/report-dialog/report-dialog.component';
 import { Comment } from '../comment.model';
 import { CommentService } from '../comment.service';
 import { NotificationService } from '../../notifications/notification.service';
@@ -12,7 +13,7 @@ import { UserSearchResult } from '../../search/search.model';
 @Component({
   selector: 'app-comment-section',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, ReportDialogComponent],
   templateUrl: './comment-section.component.html',
   styleUrl: './comment-section.component.css'
 })
@@ -46,6 +47,9 @@ export class CommentSectionComponent implements OnInit, OnChanges, OnDestroy {
 
   isLoading = false;
   isSubmitting = false;
+  reportingCommentId: number | null = null;
+  reportTarget: Comment | null = null;
+  reportSuccessMessage = '';
   errorMessage = '';
   likingSet: Set<number> = new Set();
   showEmojiPicker = false;
@@ -321,6 +325,10 @@ export class CommentSectionComponent implements OnInit, OnChanges, OnDestroy {
     return Boolean(this.currentUserId && comment.authorId === this.currentUserId);
   }
 
+  canReport(comment: Comment): boolean {
+    return Boolean(this.currentUserId && comment.authorId !== this.currentUserId);
+  }
+
   get canInteract(): boolean {
     return this.currentUserId > 0;
   }
@@ -445,6 +453,43 @@ export class CommentSectionComponent implements OnInit, OnChanges, OnDestroy {
       error: (err: Error) => {
         this.errorMessage = err.message || 'Could not unlike comment.';
         this.likingSet.delete(comment.commentId);
+      }
+    });
+  }
+
+  reportComment(comment: Comment): void {
+    if (!this.canReport(comment) || this.reportingCommentId === comment.commentId) {
+      return;
+    }
+
+    this.reportTarget = comment;
+    this.reportSuccessMessage = '';
+    this.errorMessage = '';
+  }
+
+  closeReportDialog(): void {
+    if (this.reportingCommentId !== null) {
+      return;
+    }
+    this.reportTarget = null;
+  }
+
+  submitCommentReport(reason: string): void {
+    if (!this.reportTarget) {
+      return;
+    }
+
+    const comment = this.reportTarget;
+    this.reportingCommentId = comment.commentId;
+    this.commentService.reportComment(comment.commentId, this.currentUserId, reason).subscribe({
+      next: () => {
+        this.reportingCommentId = null;
+        this.reportTarget = null;
+        this.reportSuccessMessage = 'Comment reported. Our admins can review it now.';
+      },
+      error: (err: Error) => {
+        this.reportingCommentId = null;
+        this.errorMessage = err.message || 'Could not report comment.';
       }
     });
   }

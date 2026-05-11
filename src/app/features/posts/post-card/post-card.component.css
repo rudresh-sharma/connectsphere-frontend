@@ -243,6 +243,13 @@ h3 {
   font-weight: 800;
 }
 
+.report-status-message {
+  margin: 8px 0 0;
+  color: #047857;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
 .payment-message.success {
   color: #047857;
 }
