@@ -7,12 +7,14 @@
   --auth-shadow-soft: 0 18px 42px rgba(15, 23, 42, 0.1);
   display: grid;
   grid-template-columns: 1fr;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
   background:
     linear-gradient(135deg, rgba(9, 15, 29, 0.68), rgba(13, 31, 61, 0.48) 42%, rgba(27, 74, 135, 0.3) 100%),
-    url("https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1800&q=80") center/cover no-repeat;
+    url("https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1800&q=80") center top/cover no-repeat;
   position: relative;
+  isolation: isolate;
 }
 
 .auth-shell::before,
@@ -23,12 +25,12 @@
 }
 
 .auth-shell::before {
-  inset: 24px 28px auto auto;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0) 72%);
-  filter: blur(6px);
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    linear-gradient(135deg, rgba(9, 15, 29, 0.68), rgba(13, 31, 61, 0.48) 42%, rgba(27, 74, 135, 0.3) 100%),
+    url("https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1800&q=80") center top/cover no-repeat;
 }
 
 .auth-shell::after {
@@ -168,9 +170,9 @@
   display: grid;
   align-content: center;
   justify-items: center;
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: 18px 24px;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   z-index: 1;
 }
@@ -469,12 +471,13 @@
 @media (max-width: 960px) {
   .auth-shell {
     grid-template-columns: 1fr;
-    height: 100vh;
-    overflow: auto;
+    min-height: 100dvh;
+    overflow-y: auto;
   }
 
   .form-panel {
-    min-height: 100vh;
+    min-height: 100dvh;
+    align-content: start;
     padding: 18px 14px;
     overflow: auto;
   }
@@ -490,8 +493,18 @@
 }
 
 @media (max-width: 520px) {
+  .auth-shell {
+    background-position: center top, center top;
+    background-color: #d8e3ea;
+  }
+
+  .auth-shell::after {
+    display: none;
+  }
+
   .form-panel {
-    padding: 16px 12px 22px;
+    min-height: 100dvh;
+    padding: 12px 10px 24px;
   }
 
   .auth-mode-switch {
@@ -506,7 +519,8 @@
   }
 
   .auth-card {
-    padding: 22px 18px;
+    width: min(100%, 100vw - 20px);
+    padding: 18px 14px 20px;
     border-radius: 24px;
     max-height: none;
   }
