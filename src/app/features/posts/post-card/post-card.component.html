@@ -166,6 +166,16 @@
       <span>{{ reportPending ? 'Reporting...' : 'Report' }}</span>
     </button>
     <button
+      *ngIf="!canReport && hasReportedCurrentPost"
+      class="btn btn-light action-btn"
+      type="button"
+      disabled
+      aria-disabled="true"
+    >
+      <i class="bi bi-flag-fill" aria-hidden="true"></i>
+      <span>Reported</span>
+    </button>
+    <button
       *ngIf="canModify"
       class="btn btn-light action-btn action-btn-promote"
       type="button"

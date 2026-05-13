@@ -90,6 +90,7 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
   reportSuccessMessage = '';
   paymentMessage = '';
   contentExpanded = false;
+  private reportedPostIds = new Set<number>();
   private authorLoadPostId = 0;
   private videoObserver: IntersectionObserver | null = null;
   private readonly collapsedContentLength = 220;
@@ -119,6 +120,7 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
       });
       this.contentExpanded = false;
       this.loadBookmarkStatus();
+      this.loadReportedState();
       this.loadMissingAuthorProfile();
       globalThis.setTimeout(() => this.setupAutoplayObserver(), 0);
     }
@@ -252,7 +254,17 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   get canReport(): boolean {
-    return Boolean(this.currentUserId && this.post.authorId !== this.currentUserId && this.postId && !this.reportPending);
+    return Boolean(
+      this.currentUserId &&
+      this.post.authorId !== this.currentUserId &&
+      this.postId &&
+      !this.reportPending &&
+      !this.hasReportedCurrentPost
+    );
+  }
+
+  get hasReportedCurrentPost(): boolean {
+    return this.postId > 0 && this.reportedPostIds.has(this.postId);
   }
 
   private get currentAuthor(): User | null {
@@ -565,6 +577,7 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
         this.showReportDialog = false;
         this.reportErrorMessage = '';
         this.reportSuccessMessage = 'Post reported. Our admins can review it now.';
+        this.markPostAsReported();
       },
       error: (error: Error) => {
         this.reportPending = false;
@@ -696,6 +709,49 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
         PostCardComponent.activeFeedVideo = null;
       }
     });
+  }
+
+  private get reportedPostsStorageKey(): string {
+    return `connectsphere_reported_posts_${this.currentUserId || 0}`;
+  }
+
+  private loadReportedState(): void {
+    if (!this.currentUserId) {
+      this.reportedPostIds.clear();
+      return;
+    }
+
+    const raw = localStorage.getItem(this.reportedPostsStorageKey);
+    if (!raw) {
+      this.reportedPostIds.clear();
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      if (!Array.isArray(parsed)) {
+        this.reportedPostIds.clear();
+        return;
+      }
+
+      this.reportedPostIds = new Set(
+        parsed
+          .map((value) => Number(value))
+          .filter((value) => Number.isInteger(value) && value > 0)
+      );
+    } catch {
+      this.reportedPostIds.clear();
+      localStorage.removeItem(this.reportedPostsStorageKey);
+    }
+  }
+
+  private markPostAsReported(): void {
+    if (!this.currentUserId || !this.postId) {
+      return;
+    }
+
+    this.reportedPostIds.add(this.postId);
+    localStorage.setItem(this.reportedPostsStorageKey, JSON.stringify([...this.reportedPostIds]));
   }
 
   private bindAudioUnlockListeners(): void {
