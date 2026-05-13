@@ -1,7 +1,7 @@
 <main class="posts-page">
   <section class="feed-layout">
     <section class="feed-main" aria-label="Posts">
-      <div class="mobile-home-header">
+      <div class="mobile-home-header" *ngIf="isAuthenticated">
         <h1 class="mobile-home-brand">ConnectSphere</h1>
         <app-notification-bell></app-notification-bell>
       </div>
@@ -37,6 +37,21 @@
       </div>
     </section>
 
+    <aside class="feed-sidebar" aria-label="Trending hashtags">
+      <section class="trending-card">
+        <p class="trending-kicker">Trending now</p>
+        <h2>Hashtags people are following</h2>
+        <p class="trending-intro">See what conversations are pulling attention across the platform today.</p>
+
+        <div class="trending-list">
+          <article class="trending-item" *ngFor="let topic of trendingTopics">
+            <strong>{{ topic.tag }}</strong>
+            <p>{{ topic.label }}</p>
+            <span>{{ topic.meta }}</span>
+          </article>
+        </div>
+      </section>
+    </aside>
   </section>
 
   <div

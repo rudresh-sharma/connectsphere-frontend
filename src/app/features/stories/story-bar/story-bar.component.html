@@ -2,9 +2,24 @@
   <div class="story-bar">
     <div *ngIf="currentUserId && !hasOwnStory" class="story-item create-story" (click)="toggleCreate()">
       <div class="story-ring create">
-        <span class="plus-icon">+</span>
+        <div class="story-create-core" aria-hidden="true">
+          <img
+            *ngIf="currentUserProfilePicUrl; else createStoryInitial"
+            [src]="currentUserProfilePicUrl"
+            alt=""
+            class="story-avatar"
+          >
+          <ng-template #createStoryInitial>
+            <div class="story-avatar initials">{{ getInitials(currentUsername) }}</div>
+          </ng-template>
+        </div>
+        <span class="story-create-badge" aria-hidden="true">
+          <i class="bi bi-plus-lg"></i>
+        </span>
       </div>
-      <span class="story-label">Add Story</span>
+      <span class="story-label story-create-label">
+        <strong>Add Story</strong>
+      </span>
     </div>
 
     <div *ngFor="let group of storyGroups; let groupIndex = index" class="story-item" (click)="openStoryGroup(groupIndex)">

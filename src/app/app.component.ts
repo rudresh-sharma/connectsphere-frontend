@@ -12,7 +12,12 @@ import { User } from './shared/models/auth.models';
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   template: `
     <div class="app-shell" [class.immersive-shell]="isImmersiveRoute" [class.compact-shell]="!showTopBrand">
-      <header *ngIf="showTopBrand" class="top-brand-bar" aria-label="ConnectSphere">
+      <header
+        *ngIf="showTopBrand"
+        class="top-brand-bar"
+        [class.mobile-dashboard-guest-bar]="isGuestDashboardRoute"
+        aria-label="ConnectSphere"
+      >
         <a class="top-brand-link" [routerLink]="homeRoute" aria-label="ConnectSphere home">
           <span class="brand-wordmark">ConnectSphere</span>
         </a>
@@ -20,8 +25,8 @@ import { User } from './shared/models/auth.models';
           <a class="guest-top-link guest-top-icon" routerLink="/search" aria-label="Search" title="Search">
             <i class="bi bi-search" aria-hidden="true"></i>
           </a>
-          <a class="guest-top-link" routerLink="/login">Log in</a>
-          <a class="guest-top-link primary" routerLink="/register">Register</a>
+          <a class="guest-top-link" routerLink="/login">Login</a>
+          <a class="guest-top-link primary" routerLink="/register">Sign up</a>
         </nav>
       </header>
 
@@ -293,7 +298,7 @@ import { User } from './shared/models/auth.models';
     .guest-top-actions {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       margin-left: auto;
     }
 
@@ -301,32 +306,51 @@ import { User } from './shared/models/auth.models';
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 38px;
+      min-height: 40px;
+      min-width: 86px;
       padding: 0 14px;
       border-radius: 999px;
-      color: #344054;
+      border: 1px solid rgba(203, 213, 225, 0.9);
+      background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        0 6px 14px rgba(15, 23, 42, 0.08);
+      color: #1f2937;
       font-size: 0.88rem;
-      font-weight: 800;
+      font-weight: 900;
+      letter-spacing: 0.01em;
+      line-height: 1;
+      white-space: nowrap;
       text-decoration: none;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
     }
 
     .guest-top-icon {
-      width: 48px;
+      width: 40px;
+      min-width: 40px;
       padding: 0;
       font-size: 1.05rem;
     }
 
     .guest-top-link:hover,
     .guest-top-link:focus-visible {
-      background: rgba(17, 24, 39, 0.06);
-      color: #101828;
+      border-color: rgba(148, 163, 184, 0.95);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        0 10px 18px rgba(15, 23, 42, 0.12);
+      transform: translateY(-1px);
+      color: #0f172a;
       text-decoration: none;
       outline: none;
     }
 
     .guest-top-link.primary {
-      background: #175cd3;
+      border-color: rgba(37, 99, 235, 0.7);
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 55%, #1e40af 100%);
       color: #fff;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        0 10px 22px rgba(29, 78, 216, 0.28);
     }
 
     .top-brand-link {
@@ -343,9 +367,8 @@ import { User } from './shared/models/auth.models';
     }
 
     .brand-wordmark {
-      font-family: Georgia, "Times New Roman", serif;
+      font-family: Inter, "Segoe UI", sans-serif;
       font-size: clamp(1.35rem, 2vw, 1.8rem);
-      font-style: italic;
       font-weight: 800;
       letter-spacing: 0.02em;
       color: #0f172a;
@@ -454,6 +477,14 @@ import { User } from './shared/models/auth.models';
     }
 
     @media (max-width: 700px) {
+      .top-brand-bar.mobile-dashboard-guest-bar {
+        justify-content: space-between;
+      }
+
+      .top-brand-bar.mobile-dashboard-guest-bar .guest-top-icon {
+        display: none;
+      }
+
       .app-shell {
         padding-top: 82px;
         padding-bottom: 92px;
@@ -469,26 +500,45 @@ import { User } from './shared/models/auth.models';
 
       .top-brand-bar {
         min-height: 68px;
-        padding: 12px 16px;
+        padding: 10px 10px;
+        gap: 6px;
       }
 
-      .brand-mark {
-        width: 50px;
-        height: 50px;
+      .top-brand-link {
+        flex: 1 1 auto;
+        min-width: 0;
       }
 
       .brand-wordmark {
-        font-size: 1.4rem;
+        font-size: clamp(1.06rem, 5.3vw, 1.3rem);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .guest-top-actions {
-        gap: 6px;
+        flex: 0 0 auto;
+        gap: 5px;
+        margin-left: 0;
       }
 
       .guest-top-link {
         min-height: 34px;
-        padding: 0 10px;
-        font-size: 0.78rem;
+        min-width: 62px;
+        padding: 0 7px;
+        font-size: 0.8rem;
+        letter-spacing: 0;
+      }
+
+      .guest-top-icon {
+        width: 32px;
+        min-width: 32px;
+        min-height: 32px;
+        font-size: 0.9rem;
+      }
+
+      .guest-top-link.primary {
+        min-width: 68px;
       }
 
       .desktop-side-panel {
@@ -559,6 +609,63 @@ import { User } from './shared/models/auth.models';
         text-transform: uppercase;
       }
     }
+
+    @media (max-width: 390px) {
+      .top-brand-bar {
+        padding: 9px 8px;
+        gap: 4px;
+      }
+
+      .brand-wordmark {
+        font-size: clamp(0.96rem, 5vw, 1.08rem);
+      }
+
+      .guest-top-actions {
+        gap: 4px;
+      }
+
+      .guest-top-link {
+        min-width: 56px;
+        padding: 0 6px;
+        font-size: 0.76rem;
+      }
+
+      .guest-top-link.primary {
+        min-width: 62px;
+      }
+
+      .guest-top-icon {
+        display: none;
+      }
+
+      .guest-top-actions {
+        gap: 3px;
+        flex-wrap: nowrap;
+        margin-left: auto;
+        justify-content: flex-end;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .top-brand-link {
+        max-width: 44%;
+      }
+
+      .brand-wordmark {
+        font-size: 0.92rem;
+      }
+
+      .guest-top-link {
+        white-space: nowrap !important;
+        min-width: 52px;
+        padding: 0 5px;
+        font-size: 0.73rem;
+      }
+
+      .guest-top-link.primary {
+        min-width: 58px;
+      }
+    }
   `]
 })
 export class AppComponent implements OnInit {
@@ -606,6 +713,10 @@ export class AppComponent implements OnInit {
     return !this.authService.isAuthenticated() && !hiddenRoutes.some((route) => this.router.url.startsWith(route));
   }
 
+  get isGuestDashboardRoute(): boolean {
+    return !this.authService.isAuthenticated() && this.router.url.startsWith('/dashboard');
+  }
+
   get isImmersiveRoute(): boolean {
     return this.router.url.startsWith('/reels');
   }
@@ -614,8 +725,8 @@ export class AppComponent implements OnInit {
     return this.authService.isAdmin();
   }
 
-  get homeRoute(): '/' | '/admin' | '/dashboard' {
-    return this.authService.isAuthenticated() ? this.authService.getHomeRoute() : '/';
+  get homeRoute(): '/admin' | '/dashboard' {
+    return this.authService.isAuthenticated() ? this.authService.getHomeRoute() : '/dashboard';
   }
 
   isActiveAdminView(view: 'overview' | 'notifications' | 'data'): boolean {

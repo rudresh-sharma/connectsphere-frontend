@@ -5,10 +5,9 @@ import { LoginComponent } from './features/auth/login/login.component';
 import { RegisterComponent } from './features/auth/register/register.component';
 import { AuthCallbackComponent } from './features/auth/callback/auth-callback.component';
 import { ChooseUsernameComponent } from './features/auth/choose-username/choose-username.component';
-import { LandingComponent } from './features/landing/landing.component';
 
 export const routes: Routes = [
-  { path: '', component: LandingComponent },
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'auth/callback', component: AuthCallbackComponent },
@@ -63,5 +62,5 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/search/search-page/search-page.component').then((m) => m.SearchPageComponent)
   },
-  { path: '**', redirectTo: '' }
+  { path: '**', redirectTo: 'dashboard' }
 ];

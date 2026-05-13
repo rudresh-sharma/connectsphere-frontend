@@ -61,6 +61,7 @@
           #feedVideo
           [src]="url"
           controls
+          autoplay
           playsinline
           preload="metadata"
           loop
@@ -185,9 +186,16 @@
       <i class="bi bi-megaphone" aria-hidden="true"></i>
       <span>{{ isPromoted ? 'Promoted' : isPromotionPending ? 'Pending' : 'Promote' }}</span>
     </button>
-    <button *ngIf="currentUserId" class="btn btn-light action-btn action-btn-bookmark" type="button" (click)="toggleBookmark()" [disabled]="bookmarkPending">
+    <button
+      *ngIf="currentUserId"
+      class="btn btn-light action-btn action-btn-bookmark"
+      type="button"
+      (click)="toggleBookmark()"
+      [disabled]="bookmarkPending"
+      [attr.aria-label]="isBookmarked ? 'Saved' : 'Save'"
+      [attr.title]="isBookmarked ? 'Saved' : 'Save'"
+    >
       <i class="bi" [ngClass]="isBookmarked ? 'bi-bookmark-fill' : 'bi-bookmark'" aria-hidden="true"></i>
-      <span>{{ isBookmarked ? 'Saved' : 'Save' }}</span>
     </button>
   </footer>
 

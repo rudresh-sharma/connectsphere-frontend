@@ -8,8 +8,11 @@
 .feed-layout {
   display: grid;
   width: min(640px, calc(100% - 36px));
+  max-width: 100%;
   margin: 0 auto;
   padding: 18px 0 56px;
+  box-sizing: border-box;
+  background: #fff;
 }
 
 .loading-state,
@@ -23,6 +26,111 @@
 .feed-main {
   display: grid;
   gap: 14px;
+  width: 100%;
+  min-width: 0;
+  background: #fff;
+}
+
+.feed-main > app-story-bar,
+.post-list > app-post-card {
+  display: block;
+  width: 100%;
+}
+
+.mobile-home-header {
+  width: 100%;
+  background: #fff;
+}
+
+.feed-sidebar {
+  display: none;
+}
+
+.trending-card {
+  position: sticky;
+  top: 102px;
+  padding: 1.35rem;
+  border: 1px solid rgba(217, 225, 236, 0.9);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top right, rgba(96, 165, 250, 0.14), transparent 24%),
+    linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  box-shadow: 0 20px 48px rgba(16, 24, 40, 0.08);
+}
+
+.trending-kicker {
+  margin: 0 0 0.65rem;
+  color: #2563eb;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.trending-card h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.55rem;
+  line-height: 1.05;
+}
+
+.trending-intro {
+  margin: 0.8rem 0 0;
+  color: #64748b;
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
+.trending-list {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1.2rem;
+}
+
+.trending-item {
+  padding: 1rem;
+  border: 1px solid rgba(219, 234, 254, 0.92);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.trending-item strong,
+.trending-item span {
+  display: block;
+}
+
+.trending-item strong {
+  color: #175cd3;
+  font-size: 1rem;
+}
+
+.trending-item p {
+  margin: 0.45rem 0 0;
+  color: #0f172a;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.trending-item span {
+  margin-top: 0.55rem;
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+@media (min-width: 1080px) {
+  .feed-layout {
+    grid-template-columns: minmax(0, 680px) minmax(260px, 320px);
+    align-items: start;
+    gap: 2rem;
+    width: min(1180px, calc(100% - 80px));
+    margin-left: clamp(132px, 11vw, 220px);
+    margin-right: auto;
+  }
+
+  .feed-sidebar {
+    display: block;
+  }
 }
 
 .mobile-home-header,
@@ -58,6 +166,9 @@
 .post-list {
   display: grid;
   gap: 24px;
+  width: 100%;
+  min-width: 0;
+  background: #fff;
 }
 
 .create-modal-backdrop {
@@ -104,6 +215,13 @@
     padding-left: 0;
     padding-bottom: 72px;
   }
+
+  .feed-layout {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding-inline: 18px;
+  }
 }
 
 @media (max-width: 560px) {
@@ -118,13 +236,15 @@
     display: block;
     margin: 0;
     color: #0f172a;
-    font-family: Georgia, "Times New Roman", serif;
+    font-family: Inter, "Segoe UI", sans-serif;
     font-size: 1.7rem;
     font-weight: 800;
   }
 
   .feed-layout {
     padding-top: 10px;
-    width: min(100%, calc(100% - 24px));
+    width: 100%;
+    max-width: 100%;
+    padding-inline: 12px;
   }
 }

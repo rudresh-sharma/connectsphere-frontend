@@ -89,6 +89,12 @@ export class StoryBarComponent implements OnInit, OnDestroy {
     return this.stories.some((story) => story.authorId === this.currentUserId);
   }
 
+  get currentUserProfilePicUrl(): string | null {
+    const currentUser = this.authService.getCurrentUser();
+    const profilePicUrl = currentUser?.profilePicUrl;
+    return typeof profilePicUrl === 'string' && profilePicUrl.trim() ? profilePicUrl.trim() : null;
+  }
+
   openStoryGroup(groupIndex: number, storyIndex: number = 0): void {
     this.viewingGroupIndex = groupIndex;
     this.viewingStoryIndex = storyIndex;

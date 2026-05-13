@@ -33,7 +33,7 @@ describe('AppComponent', () => {
   it('shows the top brand for guests on public routes', () => {
     authServiceSpy.isAuthenticated.and.returnValue(false);
     authServiceSpy.isAdmin.and.returnValue(false);
-    spyOnProperty(router, 'url', 'get').and.returnValue('/');
+    spyOnProperty(router, 'url', 'get').and.returnValue('/dashboard');
 
     const fixture = TestBed.createComponent(AppComponent);
     const component = fixture.componentInstance;
@@ -41,7 +41,7 @@ describe('AppComponent', () => {
     expect(component.showTopBrand).toBeTrue();
     expect(component.showDesktopSidebar).toBeFalse();
     expect(component.showMobileNav).toBeFalse();
-    expect(component.homeRoute).toBe('/');
+    expect(component.homeRoute).toBe('/dashboard');
     expect(authServiceSpy.syncCurrentUser).not.toHaveBeenCalled();
   });
 

@@ -31,6 +31,29 @@ export class PostFeedComponent implements OnInit {
   isCreateModalOpen = false;
   errorMessage = '';
 
+  readonly trendingTopics = [
+    {
+      tag: '#java',
+      label: 'Backend builders are sharing Spring and API notes.',
+      meta: '1.8k posts today'
+    },
+    {
+      tag: '#webdev',
+      label: 'Frontend experiments, UI cleanups, and Angular updates.',
+      meta: '940 posts today'
+    },
+    {
+      tag: '#connectsphere',
+      label: 'People are posting launches, feedback, and community wins.',
+      meta: '620 posts today'
+    },
+    {
+      tag: '#career',
+      label: 'Interview prep, project breakdowns, and learning streaks.',
+      meta: '410 posts today'
+    }
+  ];
+
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
 
@@ -58,6 +81,10 @@ export class PostFeedComponent implements OnInit {
 
   get currentUserId(): number {
     return this.currentUser?.userId ?? 0;
+  }
+
+  get isAuthenticated(): boolean {
+    return this.currentUserId > 0;
   }
 
   get profileInitial(): string {

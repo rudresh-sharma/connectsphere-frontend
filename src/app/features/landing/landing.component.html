@@ -1,4 +1,20 @@
 <main class="landing-shell">
+  <section class="landing-topbar" aria-label="ConnectSphere overview">
+    <div class="brand-lockup">
+      <span class="brand-mark">C</span>
+      <div>
+        <strong>ConnectSphere</strong>
+        <span>Social product for real-time communities</span>
+      </div>
+    </div>
+
+    <div class="topbar-points">
+      <span>Feed-first</span>
+      <span>Creator-friendly</span>
+      <span>Community-ready</span>
+    </div>
+  </section>
+
   <section class="landing-hero">
     <div class="hero-copy">
       <p class="eyebrow">Social Platform</p>
@@ -15,29 +31,17 @@
       <div class="hero-actions">
         <a class="btn-primary-hero" [routerLink]="primaryRoute">{{ primaryLabel }}</a>
         <a class="btn-secondary-hero" routerLink="/login">{{ isAuthenticated ? 'Switch account' : 'Log in' }}</a>
-        <a class="btn-ghost-hero" routerLink="/search">Explore</a>
+        <a class="btn-ghost-hero" [routerLink]="tertiaryRoute">{{ tertiaryLabel }}</a>
       </div>
 
       <div class="hero-strip" aria-label="Platform highlights">
-        <span class="strip-pill">Live feed</span>
-        <span class="strip-pill">Stories</span>
-        <span class="strip-pill">Reels</span>
-        <span class="strip-pill">Hashtags</span>
-        <span class="strip-pill">Notifications</span>
+        <span class="strip-pill" *ngFor="let pill of platformPills">{{ pill }}</span>
       </div>
 
       <div class="hero-highlights" aria-label="Why people use ConnectSphere">
-        <div class="highlight-card">
-          <strong>Share instantly</strong>
-          <span>Turn moments into posts, stories, and reels.</span>
-        </div>
-        <div class="highlight-card">
-          <strong>Find your people</strong>
-          <span>Follow creators, friends, and communities that match your vibe.</span>
-        </div>
-        <div class="highlight-card">
-          <strong>Stay in the loop</strong>
-          <span>Reactions, mentions, and notifications keep every conversation moving.</span>
+        <div class="highlight-card" *ngFor="let highlight of heroHighlights">
+          <strong>{{ highlight.title }}</strong>
+          <span>{{ highlight.description }}</span>
         </div>
       </div>
     </div>
@@ -87,29 +91,77 @@
     </div>
   </section>
 
+  <section class="social-proof" aria-label="Product proof points">
+    <article class="proof-card" *ngFor="let item of socialProof">
+      <strong>{{ item.value }}</strong>
+      <span>{{ item.label }}</span>
+    </article>
+  </section>
+
+  <section class="section-heading">
+    <p class="section-kicker">What gets better</p>
+    <h2>A landing page that tells a stronger product story</h2>
+    <p>
+      ConnectSphere is more than a sign-up screen. It is a social ecosystem with clear identity, active participation,
+      and enough discovery to keep people curious.
+    </p>
+  </section>
+
   <section class="landing-grid" aria-label="Platform highlights">
-    <article class="feature-card">
+    <article class="feature-card" *ngFor="let feature of featureCards">
       <div class="feature-icon" aria-hidden="true">
-        <i class="bi bi-person-check-fill"></i>
+        <i class="bi" [ngClass]="feature.icon"></i>
       </div>
-      <h3>Identity</h3>
-      <p>Secure sign-in, profile setup, and smoother onboarding.</p>
+      <p class="feature-accent">{{ feature.accent }}</p>
+      <h3>{{ feature.title }}</h3>
+      <p>{{ feature.description }}</p>
     </article>
+  </section>
 
-    <article class="feature-card">
-      <div class="feature-icon" aria-hidden="true">
-        <i class="bi bi-chat-heart-fill"></i>
-      </div>
-      <h3>Engagement</h3>
-      <p>Posts, replies, reactions, and fast-moving social energy.</p>
-    </article>
+  <section class="experience-board" aria-labelledby="experience-title">
+    <div class="board-copy">
+      <p class="section-kicker">Designed for momentum</p>
+      <h2 id="experience-title">Every part of the product helps the next interaction happen faster.</h2>
+      <p>
+        The best social products reduce friction between expression, feedback, and return visits. This layout makes
+        that cycle visible the second someone lands on the page.
+      </p>
+    </div>
 
-    <article class="feature-card">
-      <div class="feature-icon" aria-hidden="true">
-        <i class="bi bi-compass-fill"></i>
-      </div>
-      <h3>Discovery</h3>
-      <p>Stories, reels, search, and trends that keep people exploring.</p>
-    </article>
+    <div class="lane-stack">
+      <article class="experience-lane" *ngFor="let lane of experienceLanes">
+        <p class="lane-eyebrow">{{ lane.eyebrow }}</p>
+        <h3>{{ lane.title }}</h3>
+        <p>{{ lane.description }}</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="journey-section" aria-labelledby="journey-title">
+    <div class="section-heading section-heading-left">
+      <p class="section-kicker">User journey</p>
+      <h2 id="journey-title">A clearer path from first visit to daily habit.</h2>
+      <p>The page now gives visitors a more concrete sense of how they would move through the product.</p>
+    </div>
+
+    <div class="journey-grid">
+      <article class="journey-card" *ngFor="let step of journeySteps">
+        <span class="journey-step">{{ step.step }}</span>
+        <h3>{{ step.title }}</h3>
+        <p>{{ step.description }}</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="landing-cta" aria-labelledby="cta-title">
+    <div>
+      <p class="section-kicker">Ready to jump in</p>
+      <h2 id="cta-title">Start building your network, or step back into the feed.</h2>
+    </div>
+
+    <div class="cta-actions">
+      <a class="btn-primary-hero" [routerLink]="primaryRoute">{{ primaryLabel }}</a>
+      <a class="btn-secondary-hero" [routerLink]="ctaSecondaryRoute">{{ ctaSecondaryLabel }}</a>
+    </div>
   </section>
 </main>

@@ -643,7 +643,7 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
     }
 
     for (const video of videos) {
-      video.muted = !PostCardComponent.hasUnlockedAudio;
+      video.muted = false;
       video.playsInline = true;
       video.preload = 'metadata';
     }
@@ -701,13 +701,15 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
 
     PostCardComponent.activeFeedVideo = video;
     video.playsInline = true;
-    video.muted = !PostCardComponent.hasUnlockedAudio;
-    video.volume = 1;
+    video.muted = false;
 
     void video.play().catch(() => {
-      if (PostCardComponent.activeFeedVideo === video) {
-        PostCardComponent.activeFeedVideo = null;
-      }
+      video.muted = true;
+      void video.play().catch(() => {
+        if (PostCardComponent.activeFeedVideo === video) {
+          PostCardComponent.activeFeedVideo = null;
+        }
+      });
     });
   }
 
@@ -764,14 +766,12 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
       globalThis.removeEventListener('pointerdown', unlockAudio);
       globalThis.removeEventListener('touchstart', unlockAudio);
       globalThis.removeEventListener('keydown', unlockAudio);
-      globalThis.removeEventListener('scroll', unlockAudio, true);
       this.playMostVisibleFeedVideo();
     };
 
     globalThis.addEventListener('pointerdown', unlockAudio, { once: true });
     globalThis.addEventListener('touchstart', unlockAudio, { once: true });
     globalThis.addEventListener('keydown', unlockAudio, { once: true });
-    globalThis.addEventListener('scroll', unlockAudio, { once: true, capture: true });
   }
 
   private pauseFeedVideos(reset = false): void {

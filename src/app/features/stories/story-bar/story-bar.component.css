@@ -1,4 +1,4 @@
-.story-bar-wrapper { margin-bottom: 14px; }
+.story-bar-wrapper { margin-bottom: 14px; width: 100%; background: #fff; }
 .story-bar {
   display: flex; gap: 14px; overflow-x: auto; padding: 8px 0 10px;
   background: #fff; border-radius: 0; border: 0;
@@ -15,8 +15,50 @@
 .story-ring.viewed {
   background: linear-gradient(135deg, #d3d7de, #b9c0cb, #c9ced6);
 }
-.story-ring.create { background: #e8f0fe; }
-.plus-icon { font-size: 1.6rem; color: #4285f4; font-weight: 300; }
+.create-story {
+  min-width: 88px;
+}
+.story-ring.create {
+  padding: 0;
+  background: linear-gradient(135deg, #f9a8d4, #c084fc 42%, #60a5fa 76%, #34d399);
+  box-shadow: 0 12px 26px rgba(96, 165, 250, 0.22);
+}
+.story-create-core {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.92) 62%, rgba(219, 234, 254, 0.98));
+  border: 3px solid #fff;
+}
+.plus-icon {
+  font-size: 1.8rem;
+  color: #2563eb;
+  font-weight: 300;
+  line-height: 1;
+}
+.story-create-badge {
+  position: absolute;
+  right: -4px;
+  bottom: -2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.28);
+}
+.story-create-badge .bi {
+  font-size: 0.72rem;
+  line-height: 1;
+}
 .story-add-badge {
   position: absolute;
   right: -2px;
@@ -43,6 +85,18 @@
   font-size: 0.8rem; font-weight: 600; border: 3px solid #fff;
 }
 .story-label { font-size: 0.7rem; color: #555; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+.story-create-label {
+  display: block;
+  max-width: 88px;
+  white-space: nowrap;
+}
+.story-create-label strong {
+  color: #0f172a;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.1;
+  display: block;
+}
 
 .create-form { display: flex; gap: 10px; padding: 12px 16px; background: #fff; border-radius: 10px; border: 1px solid #eee; margin-top: 10px; align-items: center; }
 .caption-input { flex: 1; border: 1px solid #ddd; border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; }

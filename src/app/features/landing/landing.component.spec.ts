@@ -26,11 +26,15 @@ describe('LandingComponent', () => {
     fixture.detectChanges();
 
     expect(component.isAuthenticated).toBeFalse();
-    expect(component.primaryRoute).toBe('/register');
-    expect(component.primaryLabel).toBe('Create an account');
-    expect(fixture.nativeElement.textContent).toContain('Create an account');
+    expect(component.primaryRoute).toBe('/dashboard');
+    expect(component.primaryLabel).toBe('Open guest mode');
+    expect(component.tertiaryRoute).toBe('/register');
+    expect(component.tertiaryLabel).toBe('Create an account');
+    expect(component.ctaSecondaryRoute).toBe('/register');
+    expect(component.ctaSecondaryLabel).toBe('Create your account');
+    expect(fixture.nativeElement.textContent).toContain('Open guest mode');
     expect(fixture.nativeElement.textContent).toContain('Log in');
-    expect(fixture.nativeElement.textContent).toContain('Explore');
+    expect(fixture.nativeElement.textContent).toContain('Create an account');
   });
 
   it('uses the authenticated home route when a session exists', () => {
@@ -43,6 +47,8 @@ describe('LandingComponent', () => {
     expect(component.isAuthenticated).toBeTrue();
     expect(component.primaryRoute).toBe('/dashboard');
     expect(component.primaryLabel).toBe('Open your feed');
+    expect(component.tertiaryRoute).toBe('/search');
+    expect(component.tertiaryLabel).toBe('Explore');
   });
 
   it('supports admin users by surfacing the admin home route', () => {
@@ -54,5 +60,7 @@ describe('LandingComponent', () => {
 
     expect(component.primaryRoute).toBe('/admin');
     expect(component.primaryLabel).toBe('Open your feed');
+    expect(component.ctaSecondaryRoute).toBe('/search');
+    expect(component.ctaSecondaryLabel).toBe('See what people are sharing');
   });
 });
