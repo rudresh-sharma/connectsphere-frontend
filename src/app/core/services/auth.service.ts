@@ -12,15 +12,16 @@ import {
   User,
   UsernameAvailabilityResponse
 } from '../../shared/models/auth.models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8080/auth';
-  private readonly googleOAuthUrl = 'http://localhost:8080/oauth2/authorization/google';
-  private readonly githubOAuthUrl = 'http://localhost:8080/oauth2/authorization/github';
+  private readonly apiUrl = `${environment.authApiUrl}/auth`;
+  private readonly googleOAuthUrl = environment.oauthGoogleUrl;
+  private readonly githubOAuthUrl = environment.oauthGithubUrl;
   private readonly tokenKey = 'accessToken';
   private readonly tokenExpiryKey = 'accessTokenExpiresAt';
   private readonly userKey = 'currentUser';

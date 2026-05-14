@@ -5,8 +5,6 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 
-const AUTH_BASE_URL = 'http://localhost:8080';
-
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -63,7 +61,7 @@ export class LoginComponent implements OnInit {
   }
 
   loginWithGoogle(): void {
-    window.location.assign(`${AUTH_BASE_URL}/oauth2/authorization/google`);
+    this.authService.startGoogleLogin();
   }
 
   submit(): void {

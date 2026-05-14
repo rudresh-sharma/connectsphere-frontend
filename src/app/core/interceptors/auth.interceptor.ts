@@ -2,19 +2,9 @@ import { HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { switchMap } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { environment } from '../../../environments/environment';
 
-const API_BASE_URLS = [
-  'http://localhost:8080',
-  'http://localhost:8081',
-  'http://localhost:8082',
-  'http://localhost:8083',
-  'http://localhost:8084',
-  'http://localhost:8085',
-  'http://localhost:8086',
-  'http://localhost:8087',
-  'http://localhost:8088',
-  'http://localhost:8090'
-];
+const API_BASE_URLS = environment.backendApiUrls;
 
 const PUBLIC_AUTH_PATHS = [
   '/auth/search',
