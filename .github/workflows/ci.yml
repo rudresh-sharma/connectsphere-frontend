@@ -2,9 +2,10 @@ name: Frontend CI
 
 on:
   push:
-    branches: [main, master]
+    branches: ['**']
   pull_request:
     branches: [main, master]
+  workflow_dispatch:
 
 jobs:
   frontend:
@@ -26,3 +27,90 @@ jobs:
 
       - name: Build frontend
         run: npm run build
+
+  deploy-aws:
+    name: Deploy frontend to AWS
+    runs-on: ubuntu-latest
+    needs: frontend
+    if: >-
+      github.event_name != 'pull_request' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
+      secrets.AWS_EC2_HOST != '' &&
+      secrets.AWS_EC2_USER != '' &&
+      secrets.AWS_EC2_SSH_KEY != ''
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Prepare target directory
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          FRONTEND_DEPLOY_PATH: ${{ vars.FRONTEND_DEPLOY_PATH }}
+        with:
+          host: ${{ secrets.AWS_EC2_HOST }}
+          username: ${{ secrets.AWS_EC2_USER }}
+          key: ${{ secrets.AWS_EC2_SSH_KEY }}
+          envs: FRONTEND_DEPLOY_PATH
+          script: |
+            set -eu
+
+            DEPLOY_PATH="${FRONTEND_DEPLOY_PATH:-/var/www/connectsphere}"
+            sudo mkdir -p "$DEPLOY_PATH"
+            sudo find "$DEPLOY_PATH" -mindepth 1 -maxdepth 1 ! -name 'runtime-config.js' -exec rm -rf {} +
+
+      - name: Upload static site
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.AWS_EC2_HOST }}
+          username: ${{ secrets.AWS_EC2_USER }}
+          key: ${{ secrets.AWS_EC2_SSH_KEY }}
+          source: dist/connectsphere-frontend/browser/*
+          target: /tmp/connectsphere-frontend-deploy
+          strip_components: 3
+
+      - name: Publish static site and runtime config
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          FRONTEND_DEPLOY_PATH: ${{ vars.FRONTEND_DEPLOY_PATH }}
+          APP_PUBLIC_URL: ${{ vars.APP_PUBLIC_URL }}
+        with:
+          host: ${{ secrets.AWS_EC2_HOST }}
+          username: ${{ secrets.AWS_EC2_USER }}
+          key: ${{ secrets.AWS_EC2_SSH_KEY }}
+          envs: FRONTEND_DEPLOY_PATH,APP_PUBLIC_URL
+          script: |
+            set -eu
+
+            DEPLOY_PATH="${FRONTEND_DEPLOY_PATH:-/var/www/connectsphere}"
+            TEMP_PATH="/tmp/connectsphere-frontend-deploy"
+            PUBLIC_URL="${APP_PUBLIC_URL:-}"
+
+            sudo mkdir -p "$DEPLOY_PATH"
+            sudo cp -R "$TEMP_PATH"/. "$DEPLOY_PATH"/
+
+            if [ -n "$PUBLIC_URL" ]; then
+              sudo tee "$DEPLOY_PATH/runtime-config.js" >/dev/null <<EOF
+            globalThis.__CONNECTSPHERE_ENV__ = {
+              gatewayApiUrl: '$PUBLIC_URL'
+            };
+            EOF
+            else
+              sudo tee "$DEPLOY_PATH/runtime-config.js" >/dev/null <<EOF
+            globalThis.__CONNECTSPHERE_ENV__ = globalThis.__CONNECTSPHERE_ENV__ ?? {};
+            EOF
+            fi
+
+            rm -rf "$TEMP_PATH"
