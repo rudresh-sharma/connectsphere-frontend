@@ -592,6 +592,16 @@
     justify-self: stretch;
   }
 
+  :host-context(.reel-comments-panel) .add-comment-form {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+
+  :host-context(.reel-comments-panel) .post-comment-btn {
+    width: auto;
+    justify-self: end;
+  }
+
   .comment-main {
     gap: 8px;
   }
@@ -631,27 +641,30 @@
 }
 
 :host-context(.reel-comments-panel) .add-comment-form {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr) auto;
   flex: 0 0 auto;
   gap: 10px;
   padding: 14px 16px 16px;
-  position: relative;
+  padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  position: sticky;
+  bottom: 0;
   z-index: 2;
   box-sizing: border-box;
 }
 
 :host-context(.reel-comments-panel) .comment-input {
-  min-height: 64px;
-  max-height: 96px;
-  padding-block: 12px;
+  min-height: 52px;
+  max-height: 84px;
+  padding-block: 10px;
   border-radius: 16px;
   resize: none;
 }
 
 :host-context(.reel-comments-panel) .post-comment-btn {
-  width: 100%;
-  min-width: 0;
-  min-height: 42px;
+  width: auto;
+  min-width: 78px;
+  min-height: 52px;
+  align-self: stretch;
 }
 
 :host-context(.comments-modal-panel) .comment-section {
