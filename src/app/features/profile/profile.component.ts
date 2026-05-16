@@ -185,7 +185,7 @@ export class ProfileComponent implements OnInit {
   }
 
   private loadProfile(requestedUserId: number | null, shouldOpenSettings = false): void {
-    const currentUser = this.authService.getCurrentUser();
+    const currentUser = this.authService.getCurrentUser() ?? this.authService.restoreCurrentUserFromToken();
     this.user = currentUser;
     this.errorMessage = '';
     this.successMessage = '';

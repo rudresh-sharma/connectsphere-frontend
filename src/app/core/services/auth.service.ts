@@ -271,6 +271,23 @@ export class AuthService {
     }
   }
 
+  restoreCurrentUserFromToken(): User | null {
+    const token = this.getToken();
+    if (!token) {
+      return null;
+    }
+
+    const currentUser = this.getCurrentUser();
+    const restoredUser = this.createUserFromToken(token, currentUser);
+
+    if (!restoredUser.userId) {
+      return currentUser;
+    }
+
+    this.persistUser(restoredUser);
+    return restoredUser;
+  }
+
   rememberIdentity(identity: string): void {
     localStorage.setItem('connectsphere_remembered_identity', identity);
   }
