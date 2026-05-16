@@ -185,7 +185,12 @@ export class ProfileComponent implements OnInit {
   }
 
   private loadProfile(requestedUserId: number | null, shouldOpenSettings = false): void {
-    const currentUser = this.authService.getCurrentUser() ?? this.authService.restoreCurrentUserFromToken();
+    // If the stored user has no valid userId (can happen with OAuth/stale sessions),
+    // try to restore a better user object from the JWT claims before giving up.
+    let currentUser = this.authService.getCurrentUser();
+    if (!currentUser?.userId) {
+      currentUser = this.authService.restoreCurrentUserFromToken() ?? currentUser;
+    }
     this.user = currentUser;
     this.errorMessage = '';
     this.successMessage = '';
@@ -205,9 +210,16 @@ export class ProfileComponent implements OnInit {
 
     if (this.isOwnProfile) {
       this.patchProfileForm();
-      this.loadProfileData();
+      // Only load posts immediately when we have a real userId.
+      // If userId is 0 or missing, refreshProfile() will supply it and call loadProfileData().
+      if (currentUser?.userId) {
+        this.loadProfileData();
+      }
       if (this.authService.getToken()) {
         this.refreshProfile();
+      } else if (!currentUser?.userId) {
+        // No token AND no usable userId — nothing we can do.
+        void this.router.navigate(['/login']);
       }
       return;
     }
@@ -246,8 +258,13 @@ export class ProfileComponent implements OnInit {
       .getProfile()
       .pipe(
         catchError((error: Error & { status?: number }) => {
-          const fallbackUser = this.authService.getCurrentUser();
-          if (fallbackUser?.userId && error.status && error.status >= 500) {
+          // Fall back to the public-user API for ANY error (404 included),
+          // not just 5xx. This handles accounts where /auth/profile returns
+          // 404 but the user record + posts still exist in the post service.
+          const fallbackUser =
+            this.authService.getCurrentUser() ??
+            this.authService.restoreCurrentUserFromToken();
+          if (fallbackUser?.userId) {
             return this.authService.getPublicUser(fallbackUser.userId).pipe(
               catchError(() => of(fallbackUser))
             );
@@ -265,13 +282,13 @@ export class ProfileComponent implements OnInit {
             this.authService.updateCurrentUserFromProfile(user);
           }
           this.patchProfileForm();
+          // Always reload profile data on success — covers the case where
+          // loadProfileData() was skipped earlier due to a missing userId.
           this.loadProfileData();
           this.successMessage = 'Profile synced.';
         },
         error: (error: Error) => {
-          if (this.user?.userId) {
-            this.loadProfileData();
-          }
+          // Only reachable when we have no userId at all; nothing to load.
           this.errorMessage = error.message;
         }
       });
