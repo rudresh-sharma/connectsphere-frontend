@@ -34,15 +34,28 @@ jobs:
     needs: frontend
     if: >-
       github.event_name != 'pull_request' &&
-      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
-      secrets.AWS_EC2_HOST != '' &&
-      secrets.AWS_EC2_USER != '' &&
-      secrets.AWS_EC2_SSH_KEY != ''
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    env:
+      AWS_EC2_HOST: ${{ secrets.AWS_EC2_HOST }}
+      AWS_EC2_USER: ${{ secrets.AWS_EC2_USER }}
+      AWS_EC2_SSH_KEY: ${{ secrets.AWS_EC2_SSH_KEY }}
     steps:
+      - name: Check AWS deploy secrets
+        id: aws-secrets
+        run: |
+          if [ -n "$AWS_EC2_HOST" ] && [ -n "$AWS_EC2_USER" ] && [ -n "$AWS_EC2_SSH_KEY" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "AWS deploy skipped because one or more required GitHub secrets are missing."
+          fi
+
       - name: Checkout
+        if: steps.aws-secrets.outputs.configured == 'true'
         uses: actions/checkout@v4
 
       - name: Set up Node
+        if: steps.aws-secrets.outputs.configured == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -50,12 +63,15 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies
+        if: steps.aws-secrets.outputs.configured == 'true'
         run: npm ci
 
       - name: Build frontend
+        if: steps.aws-secrets.outputs.configured == 'true'
         run: npm run build
 
       - name: Prepare target directory
+        if: steps.aws-secrets.outputs.configured == 'true'
         uses: appleboy/ssh-action@v1.2.0
         env:
           FRONTEND_DEPLOY_PATH: ${{ vars.FRONTEND_DEPLOY_PATH }}
@@ -72,6 +88,7 @@ jobs:
             sudo find "$DEPLOY_PATH" -mindepth 1 -maxdepth 1 ! -name 'runtime-config.js' -exec rm -rf {} +
 
       - name: Upload static site
+        if: steps.aws-secrets.outputs.configured == 'true'
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.AWS_EC2_HOST }}
@@ -82,6 +99,7 @@ jobs:
           strip_components: 3
 
       - name: Publish static site and runtime config
+        if: steps.aws-secrets.outputs.configured == 'true'
         uses: appleboy/ssh-action@v1.2.0
         env:
           FRONTEND_DEPLOY_PATH: ${{ vars.FRONTEND_DEPLOY_PATH }}
