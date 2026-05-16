@@ -62,7 +62,7 @@ export class PostService {
 
   getUserPosts(userId: number): Observable<Post[]> {
     return this.http
-      .get<PageResponse<Post> | Post[]>(`${this.baseUrl}/user/${userId}`)
+      .get(`${this.baseUrl}/user/${userId}`, { responseType: 'text' })
       .pipe(map((response) => this.unwrapPage(response)));
   }
 
