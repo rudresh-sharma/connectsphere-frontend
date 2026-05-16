@@ -126,7 +126,21 @@ export class PostService {
     return this.http.get<Post[]>(`${this.baseUrl}/bookmarks/${userId}`);
   }
 
-  private unwrapPage(response: PageResponse<Post> | Post[]): Post[] {
-    return Array.isArray(response) ? response : response.content ?? [];
+  private unwrapPage(response: PageResponse<Post> | Post[] | string): Post[] {
+    const normalizedResponse = this.normalizePageResponse(response);
+    return Array.isArray(normalizedResponse) ? normalizedResponse : normalizedResponse.content ?? [];
+  }
+
+  private normalizePageResponse(response: PageResponse<Post> | Post[] | string): PageResponse<Post> | Post[] {
+    if (typeof response !== 'string') {
+      return response;
+    }
+
+    try {
+      const parsed = JSON.parse(response) as PageResponse<Post> | Post[];
+      return typeof parsed === 'string' ? [] : parsed;
+    } catch {
+      return [];
+    }
   }
 }
