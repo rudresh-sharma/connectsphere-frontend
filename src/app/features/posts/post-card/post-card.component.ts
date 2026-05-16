@@ -802,7 +802,7 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   private async sharePostLink(): Promise<void> {
-    const url = `${globalThis.location.origin}/posts/${this.postId}`;
+    const url = `${globalThis.location.origin}/post/${this.postId}`;
     const text = `${this.authorName}: ${this.post.content}`;
 
     if (navigator.share) {

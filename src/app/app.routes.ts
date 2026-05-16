@@ -24,7 +24,7 @@ export const routes: Routes = [
       import('./features/posts/post-feed/post-feed.component').then((m) => m.PostFeedComponent)
   },
   {
-    path: 'posts/:id',
+    path: 'post/:id',
     loadComponent: () =>
       import('./features/posts/post-detail/post-detail.component').then((m) => m.PostDetailComponent)
   },
