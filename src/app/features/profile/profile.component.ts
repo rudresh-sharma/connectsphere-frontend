@@ -204,10 +204,10 @@ export class ProfileComponent implements OnInit {
     }
 
     if (this.isOwnProfile) {
+      this.patchProfileForm();
+      this.loadProfileData();
       if (this.authService.getToken()) {
         this.refreshProfile();
-      } else {
-        this.loadFollowCounts();
       }
       return;
     }
@@ -269,6 +269,9 @@ export class ProfileComponent implements OnInit {
           this.successMessage = 'Profile synced.';
         },
         error: (error: Error) => {
+          if (this.user?.userId) {
+            this.loadProfileData();
+          }
           this.errorMessage = error.message;
         }
       });
