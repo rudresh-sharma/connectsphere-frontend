@@ -164,6 +164,7 @@
     </button>
   </section>
 
+
   <section class="profile-content">
     <div class="profile-posts">
       <div *ngIf="selectedProfileTab === 'details'" class="profile-empty-state">
@@ -172,7 +173,12 @@
         <p>{{ user?.email || 'No additional details to show.' }}</p>
       </div>
 
-      <div *ngIf="selectedProfileTab !== 'details' && visiblePosts.length === 0" class="profile-empty-state">
+      <div *ngIf="selectedProfileTab !== 'details' && isLoadingPosts" class="profile-empty-state">
+        <span class="spinner-border" style="width:2rem;height:2rem;border-width:3px;" role="status" aria-label="Loading posts"></span>
+        <p style="margin-top:1rem;color:var(--text-muted,#888)">Loading posts…</p>
+      </div>
+
+      <div *ngIf="selectedProfileTab !== 'details' && !isLoadingPosts && visiblePosts.length === 0" class="profile-empty-state">
         <i class="bi" [ngClass]="selectedProfileTab === 'saved' ? 'bi-bookmark' : 'bi-camera'" aria-hidden="true"></i>
         <h3>{{ selectedProfileTab === 'saved' ? 'No saved posts yet' : 'No posts yet' }}</h3>
         <p>

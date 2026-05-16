@@ -35,6 +35,7 @@ export class ProfileComponent implements OnInit {
   selectedProfileTab: 'posts' | 'saved' | 'details' = 'posts';
   selectedFollowTab: 'followers' | 'following' = 'followers';
   isRefreshing = false;
+  isLoadingPosts = false;
   isSavingProfile = false;
   isUploadingPicture = false;
   isDeletingAccount = false;
@@ -316,15 +317,19 @@ export class ProfileComponent implements OnInit {
   loadPosts(): void {
     if (!this.profileUserId) {
       this.posts = [];
+      this.isLoadingPosts = false;
       return;
     }
 
+    this.isLoadingPosts = true;
     this.postService.getUserPosts(this.profileUserId).subscribe({
       next: (posts) => {
         this.posts = posts ?? [];
+        this.isLoadingPosts = false;
       },
       error: () => {
         this.posts = [];
+        this.isLoadingPosts = false;
       }
     });
   }
@@ -348,6 +353,11 @@ export class ProfileComponent implements OnInit {
   selectFollowTab(tab: 'followers' | 'following'): void {
     this.selectedFollowTab = tab;
     this.showConnections = true;
+    // If follow counts never loaded (e.g. profileUserId was 0 during init
+    // but refreshProfile() has since set a real userId), reload them now.
+    if (!this.followCounts && !this.isLoadingFollowCounts && this.profileUserId) {
+      this.loadFollowCounts();
+    }
   }
 
   selectProfileTab(tab: 'posts' | 'saved' | 'details'): void {
