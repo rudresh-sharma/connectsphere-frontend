@@ -232,8 +232,6 @@
     class="profile-post-viewer-backdrop"
     tabindex="0"
     (click)="closePostViewer()"
-    (keydown.enter)="closePostViewer()"
-    (keydown.space)="closePostViewer(); $event.preventDefault()"
   >
     <dialog
       class="profile-post-viewer"
@@ -241,6 +239,7 @@
       aria-label="Profile post"
       (click)="$event.stopPropagation()"
       (wheel)="onPostViewerWheel($event)"
+      (keydown.escape)="closePostViewer()"
     >
       <button class="profile-post-viewer-close" type="button" (click)="closePostViewer()" aria-label="Close post">
         <i class="bi bi-x-lg" aria-hidden="true"></i>
@@ -283,14 +282,13 @@
     class="profile-edit-modal-backdrop"
     tabindex="0"
     (click)="toggleEditProfile()"
-    (keydown.enter)="toggleEditProfile()"
-    (keydown.space)="toggleEditProfile(); $event.preventDefault()"
   >
     <dialog
       class="profile-edit-modal profile-card"
       open
       aria-label="Edit profile"
       (click)="$event.stopPropagation()"
+      (keydown.escape)="toggleEditProfile()"
     >
       <div class="section-heading">
         <div>
@@ -401,14 +399,13 @@
     class="connections-modal-backdrop"
     tabindex="0"
     (click)="closeConnections()"
-    (keydown.enter)="closeConnections()"
-    (keydown.space)="closeConnections(); $event.preventDefault()"
   >
     <dialog
       class="connections-modal"
       open
       [attr.aria-label]="selectedFollowTab === 'followers' ? 'Followers' : 'Following'"
       (click)="$event.stopPropagation()"
+      (keydown.escape)="closeConnections()"
     >
       <div class="connections-modal-header">
         <div class="connections-modal-title">
@@ -431,14 +428,13 @@
     class="settings-modal-backdrop"
     tabindex="0"
     (click)="closeSettings()"
-    (keydown.enter)="closeSettings()"
-    (keydown.space)="closeSettings(); $event.preventDefault()"
   >
     <dialog
       class="settings-modal"
       open
       aria-label="Settings"
       (click)="$event.stopPropagation()"
+      (keydown.escape)="closeSettings()"
     >
       <div class="settings-modal-header">
         <div>

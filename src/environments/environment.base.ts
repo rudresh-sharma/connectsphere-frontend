@@ -41,9 +41,10 @@ export function buildEnvironment(production: boolean): AppEnvironment {
     }
   ).__CONNECTSPHERE_ENV__ ?? {};
 
+  const defaultGatewayApiUrl = production ? null : 'http://localhost:8088';
   const gatewayApiUrl = runtimeOverrides.gatewayApiUrl
     ? normalizeHttpUrl(runtimeOverrides.gatewayApiUrl)
-    : null;
+    : defaultGatewayApiUrl;
   const authApiUrl = normalizeHttpUrl(
     runtimeOverrides.authApiUrl ?? gatewayApiUrl ?? localDefaults.authApiUrl
   );
@@ -70,7 +71,9 @@ export function buildEnvironment(production: boolean): AppEnvironment {
   );
   const notificationWsUrl = normalizeSocketUrl(
     runtimeOverrides.notificationWsUrl ??
-      `${toSocketBase(notificationApiUrl)}/ws/notifications`
+      (!production && gatewayApiUrl && !runtimeOverrides.notificationApiUrl
+        ? localDefaults.notificationWsUrl
+        : `${toSocketBase(notificationApiUrl)}/ws/notifications`)
   );
 
   return {
