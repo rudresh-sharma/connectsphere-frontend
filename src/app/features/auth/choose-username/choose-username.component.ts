@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { debounceTime, distinctUntilChanged, filter, finalize, of, switchMap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, finalize, of, switchMap, catchError } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -120,15 +120,23 @@ export class ChooseUsernameComponent implements OnInit {
         username: this.username.value,
         bio: this.bio.value.trim() || null
       })
-      .pipe(
-        switchMap(() => (this.selectedFile ? this.authService.uploadProfilePicture(this.selectedFile) : of(null))),
-        finalize(() => (this.isSubmitting = false))
-      )
       .subscribe({
         next: () => {
+          const selectedFile = this.selectedFile;
+          this.isSubmitting = false;
           void this.router.navigate(['/dashboard']);
+
+          if (selectedFile) {
+            this.authService
+              .uploadProfilePicture(selectedFile)
+              .pipe(
+                catchError(() => of(null))
+              )
+              .subscribe();
+          }
         },
         error: (error: Error) => {
+          this.isSubmitting = false;
           this.errorMessage = error.message;
         }
       });

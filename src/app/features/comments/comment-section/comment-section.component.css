@@ -110,8 +110,8 @@
 .add-comment-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
   padding: 16px 24px 22px;
   border-top: 1px solid rgba(226, 232, 240, 0.92);
   background: rgba(255, 255, 255, 0.96);
@@ -280,11 +280,12 @@
 }
 
 .post-comment-btn {
-  align-self: center;
-  min-width: 84px;
-  min-height: 44px;
-  padding-inline: 18px;
+  align-self: end;
+  min-width: 72px;
+  height: 44px;
+  padding-inline: 16px;
   border-radius: 999px;
+  white-space: nowrap;
   font-weight: 800;
 }
 
@@ -585,20 +586,20 @@
 
   .add-comment-form {
     grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
+    align-items: center;
   }
 
   .post-comment-btn {
     width: auto;
-    min-width: 78px;
-    min-height: 52px;
+    min-width: 72px;
+    height: 44px;
     justify-self: end;
-    align-self: stretch;
+    align-self: end;
   }
 
   :host-context(.reel-comments-panel) .add-comment-form {
     grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
+    align-items: center;
   }
 
   :host-context(.reel-comments-panel) .post-comment-btn {
@@ -666,9 +667,9 @@
 
 :host-context(.reel-comments-panel) .post-comment-btn {
   width: auto;
-  min-width: 78px;
-  min-height: 52px;
-  align-self: stretch;
+  min-width: 72px;
+  height: 44px;
+  align-self: end;
 }
 
 :host-context(.comments-modal-panel) .comment-section {
@@ -751,6 +752,7 @@
     gap: 10px;
     min-height: 96px;
     padding: 14px 16px 18px;
+    align-items: center;
   }
 
   :host-context(.comments-modal-panel) .comment-feed,
@@ -760,6 +762,8 @@
 
   :host-context(.comments-modal-panel) .post-comment-btn {
     width: auto;
-    min-width: 78px;
+    min-width: 72px;
+    height: 44px;
+    align-self: end;
   }
 }
